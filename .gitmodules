@@ -1,9 +1,6 @@
 [submodule "dependencies/gl3w"]
 	path = dependencies/gl3w
 	url = https://github.com/skaslev/gl3w
-[submodule "dependencies/opengl"]
-	path = dependencies/opengl
-	url = https://github.com/KhronosGroup/OpenGL-Registry
 [submodule "dependencies/debugbreak"]
 	path = dependencies/debugbreak
 	url = https://github.com/scottt/debugbreak
