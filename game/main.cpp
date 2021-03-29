@@ -38,15 +38,34 @@ This is it.
 HINSTANCE g_ModuleHandle;
 HWND g_MainWindow;
 
+void update()
+{
+	
+}
+
+void render()
+{
+	
+}
+
 LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
-	return 0;
+	switch(uMsg)
+	{
+		case WM_CLOSE:
+			return 0;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			break;
+	}
+	
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
 int main()
 {
 	// Get module handle
-	s_ModuleHandle = (HINSTANCE)GetModuleHandle(NULL);
+	g_ModuleHandle = (HINSTANCE)GetModuleHandle(NULL);
 	
 	// Use icon from the executable, if any
 	HICON hIcon = NULL;
@@ -66,7 +85,41 @@ int main()
 	wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wndClass.lpszMenuName = NULL;
 	wndClass.lpszClassName = "PolyverseGame";
-	GAME_RELEASE_VERIFY(RegisterClass(&wndClass));
+	GAME_RELEASE_VERIFY(RegisterClass(&wndClass)); // FIXME: Error handling
+	
+	// Create a window
+	RECT r;
+	SetRect(&r, 0, 0, 1280, 720);
+	AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
+	g_MainWindow = CreateWindow(
+		"PolyverseGame",
+		L"Fantasy Space Game",
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT,
+		(r.right - r.left), (r.bottom - r.top),
+		0, NULL, g_ModuleHandle, 0);
+	GAME_RELEASE_ASSERT(g_MainWindow); // FIXME: Error handling
+	
+	// Message loop
+	MSG msg = { 0 };
+	do
+	{
+		if (PeekMessageW(&msg, NULL, 0U, 0U, PM_REMOVE))
+		{
+			// Translate and dispatch the message
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+		else
+		{
+			update();
+			render();
+		}
+	} while (msg.message != WM_QUIT)
+	
+	// Done
+	DestroyWindow(g_MainWindow);
+	UnregisterClass("PolyverseGame", g_ModuleHandle);
 	
 	return EXIT_SUCCESS;
 }
