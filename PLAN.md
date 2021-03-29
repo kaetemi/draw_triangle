@@ -31,3 +31,6 @@ For controls, better to use XInput directly.
 
 Draw a triangle, and do it properly. We need to get sRGB and Linear color spaces correct from the go!
 
+## Make gl3w generator part of CMake script
+
+Instead of storing the downloaded and generated code, make it part of the CMake project generation.
