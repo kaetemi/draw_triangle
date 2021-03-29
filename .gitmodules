@@ -4,3 +4,12 @@
 [submodule "dependencies/opengl"]
 	path = dependencies/opengl
 	url = https://github.com/KhronosGroup/OpenGL-Registry
+[submodule "dependencies/debugbreak"]
+	path = dependencies/debugbreak
+	url = https://github.com/scottt/debugbreak
+[submodule "dependencies/fmt"]
+	path = dependencies/fmt
+	url = https://github.com/fmtlib/fmt
+[submodule "dependencies/gsl"]
+	path = dependencies/gsl
+	url = https://github.com/microsoft/GSL
