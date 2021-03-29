@@ -106,15 +106,17 @@ using namespace std::string_view_literals;
 // Include debug_break
 #include <debugbreak.h>
 #define GAME_RELEASE_BREAK() debug_break()
+#define GAME_RELEASE_ASSERT(cond) do { if (!(cond)) GAME_RELEASE_BREAK(); } while (false)
+#define GAME_RELEASE_VERIFY(cond) do { if (!(cond)) GAME_RELEASE_BREAK(); } while (false)
 
 #ifdef GAME_DEBUG
 #define GAME_DEBUG_BREAK() debug_break()
-#define GAME_ASSERT(cond) do { if (!(cond)) GAME_DEBUG_BREAK(); } while (false)
-#define GAME_VERIFY(cond) do { if (!(cond)) GAME_DEBUG_BREAK(); } while (false)
+#define GAME_DEBUG_ASSERT(cond) do { if (!(cond)) GAME_DEBUG_BREAK(); } while (false)
+#define GAME_DEBUG_VERIFY(cond) do { if (!(cond)) GAME_DEBUG_BREAK(); } while (false)
 #else
 #define GAME_DEBUG_BREAK() do { } while (false)
-#define GAME_ASSERT(cond) do { } while (false)
-#define GAME_VERIFY(cond) do { cond; } while (false)
+#define GAME_DEBUG_ASSERT(cond) do { } while (false)
+#define GAME_DEBUG_VERIFY(cond) do { cond; } while (false)
 #endif
 
 #endif /* __cplusplus */

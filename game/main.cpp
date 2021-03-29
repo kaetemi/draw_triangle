@@ -35,8 +35,39 @@ This is it.
 
 #include "platform.h"
 
+HINSTANCE g_ModuleHandle;
+HWND g_MainWindow;
+
+LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
+{
+	return 0;
+}
+
 int main()
 {
+	// Get module handle
+	s_ModuleHandle = (HINSTANCE)GetModuleHandle(NULL);
+	
+	// Use icon from the executable, if any
+	HICON hIcon = NULL;
+	WCHAR szExePath[MAX_PATH];
+	GetModuleFileNameW(NULL, szExePath, MAX_PATH);
+	HICON hIcon = ExtractIconW(g_ModuleHandle, szExePath, 0);
+	
+	// Register the window class
+	WNDCLASS wndClass;
+	wndClass.style = CS_DBLCLKS;
+	wndClass.lpfnWndProc = windowProc;
+	wndClass.cbClsExtra = 0;
+	wndClass.cbWndExtra = 0;
+	wndClass.hInstance = g_ModuleHandle;
+	wndClass.hIcon = hIcon;
+	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+	wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+	wndClass.lpszMenuName = NULL;
+	wndClass.lpszClassName = "PolyverseGame";
+	GAME_RELEASE_VERIFY(RegisterClass(&wndClass));
+	
 	return EXIT_SUCCESS;
 }
 
