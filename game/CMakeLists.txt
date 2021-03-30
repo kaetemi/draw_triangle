@@ -1,0 +1,17 @@
+
+FILE(GLOB SRCS *.cpp)
+FILE(GLOB HDRS *.h)
+FILE(GLOB INLS *.inl)
+
+SOURCE_GROUP("" FILES ${SRCS} ${HDRS} ${INLS})
+
+ADD_EXECUTABLE(game
+  ${SRCS}
+  ${HDRS}
+  ${INLS}
+)
+
+TARGET_LINK_LIBRARIES(game PUBLIC
+  gl3w
+  Boxer
+)

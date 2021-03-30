@@ -37,7 +37,7 @@ std::string_view copyString(const std::string_view str) noexcept
 {
 	if (str.empty())
 		return std::string_view();
-	char *buf = new (nothrow) char[str.size() + 1];
+	char *buf = new (std::nothrow) char[str.size() + 1];
 	if (!buf)
 		return std::string_view();
 	memcpy(buf, str.data(), str.size());

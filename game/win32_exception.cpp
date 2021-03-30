@@ -61,7 +61,7 @@ std::string_view getWin32Message(DWORD errorCode) noexcept
 		return null;
 
 	// Get UTF-8 string
-	char *utf8Buf = new (nothrow) char[reqLen];
+	char *utf8Buf = new (std::nothrow) char[reqLen];
 	if (!utf8Buf)
 		return null;
 	int utf8Len = WideCharToMultiByte(CP_UTF8, 0,
@@ -88,7 +88,7 @@ std::string_view getMessage(const std::string_view systemMessage, const HRESULT 
 		+ (hr != S_OK ? (hresultTxt.size() + sizeof(hr) * 2 + 1) : 0) // HRESULT: 0x // 00000000 // \n
 		+ ((hr == S_OK && errorCode) ? (dwordTxt.size() + sizeof(errorCode) * 2 + 1) : 0) // DWORD: 0x // 00000000 // \n
 		+ fileTxt.size() + file.size() + lineTxt.size() + 11 + 1; // File: // a.cpp // , line: // 0 // \0
-	char *buf = new (nothrow) char[maxLen];
+	char *buf = new (std::nothrow) char[maxLen];
 	if (!buf)
 		return null;
 	ptrdiff_t i = 0;
@@ -135,7 +135,7 @@ std::string_view copyString(const std::string_view str) noexcept
 {
 	if (str.empty())
 		return std::string_view();
-	char *buf = new (nothrow) char[str.size() + 1];
+	char *buf = new (std::nothrow) char[str.size() + 1];
 	if (!buf)
 		return std::string_view();
 	memcpy(buf, str.data(), str.size());

@@ -31,7 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef GAME_EXCEPTION_H
 #define GAME_EXCEPTION_H
 
-#include "platform.h
+#include "platform.h"
 
 namespace game {
 
