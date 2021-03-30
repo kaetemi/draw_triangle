@@ -64,6 +64,13 @@ void render()
 void wmCreate();
 void wmDestroy();
 
+#define RETHROW_WND_PROC_EXCEPTION() if (s_WindowProcException) \
+	{ \
+		std::exception_ptr ex = s_WindowProcException; \
+		s_WindowProcException = null; \
+		std::rethrow_exception(ex); \
+	}
+
 LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	try
@@ -200,6 +207,7 @@ void wmCreate()
 		CW_USEDEFAULT, CW_USEDEFAULT,
 		(r.right - r.left), (r.bottom - r.top),
 		0, NULL, ModuleHandle, 0);
+	RETHROW_WND_PROC_EXCEPTION();
 	GAME_IF_THROW_LAST_ERROR(!hwnd);
 	GAME_FINALLY([&]() -> void { DestroyWindow(hwnd); });
 	GAME_DEBUG_ASSERT(s_DummyGlContext);
@@ -277,6 +285,7 @@ int main()
 				CW_USEDEFAULT, CW_USEDEFAULT,
 				(r.right - r.left), (r.bottom - r.top),
 				0, NULL, ModuleHandle, 0);
+			RETHROW_WND_PROC_EXCEPTION();
 			GAME_IF_THROW_LAST_ERROR(!MainWindow);
 			GAME_DEBUG_ASSERT(MainGlContext);
 			GAME_DEBUG_ASSERT(!s_DummyGlContext);
