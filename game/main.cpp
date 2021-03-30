@@ -38,6 +38,8 @@ This is it.
 
 #include <boxer/boxer.h>
 
+namespace game {
+
 HINSTANCE g_ModuleHandle;
 HWND g_MainWindow;
 HGLRC g_GLContext;
@@ -45,8 +47,6 @@ HGLRC g_GLContext;
 namespace /* anonymous */ {
 
 std::exception_ptr s_WindowProcException = null;
-
-}
 
 void update()
 {
@@ -213,6 +213,16 @@ int main()
 		boxer::show("A system exception occured.", "Game Exception");
 	}
 	return EXIT_FAILURE;
+}
+
+} /* anonymous namespace */
+
+}
+
+// int main()
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
+{
+	return game::main();
 }
 
 /* end of file */

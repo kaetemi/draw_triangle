@@ -31,6 +31,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <fmt/core.h>
 
+namespace game {
+
 namespace /* anonymous */ {
 
 std::string_view getWin32Message(DWORD errorCode) noexcept
@@ -190,5 +192,7 @@ void Win32Exception::destroyStringView(StringView sv)
 {
 	delete[] sv.Data;
 }
+
+} /* namespace game */
 
 /* end of file */

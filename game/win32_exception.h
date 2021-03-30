@@ -46,6 +46,8 @@ Under normal circumstances, your application should *never* throw an exception.
 #include "platform.h"
 #include "exception.h"
 
+namespace game {
+
 struct Win32Exception : Exception
 {
 public:
@@ -87,6 +89,8 @@ private:
 	StringView m_Message; // String view, but guaranteed empty or NUL-terminated
 	
 };
+
+} /* namespace game */
 
 #define GAME_THROW_HRESULT(hr) throw Win32Exception((hr), 0, __FILE__, __LINE__)
 #define GAME_THROW_LAST_ERROR() throw Win32Exception(S_OK, GetLastError(), __FILE__, __LINE__)

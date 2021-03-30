@@ -33,6 +33,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "platform.h
 
+namespace game {
+
 struct Exception
 {
 public:
@@ -61,6 +63,8 @@ private:
 	bool m_Delete;
 
 };
+
+} /* namespace game */
 
 #endif /* #ifndef GAME_EXCEPTION_H */
 

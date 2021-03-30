@@ -29,6 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "exception.h"
 
+namespace game {
+
 namespace /* anonymous */ {
 
 std::string_view copyString(const std::string_view str) noexcept
@@ -95,5 +97,7 @@ Exception &Exception::operator=(Exception const &other) noexcept
 {
 	return m_What.Data ? m_What.Data : "An unknown exception occurred.";
 }
+
+} /* namespace game */
 
 /* end of file */
