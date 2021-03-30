@@ -42,13 +42,14 @@ This is it.
 namespace game {
 
 HINSTANCE ModuleHandle;
+HICON MainIcon;
 HWND MainWindow;
 HGLRC MainGlContext;
 
 namespace /* anonymous */ {
 
 std::exception_ptr s_WindowProcException = null;
-HGLRC s_DummyMainGlContext;
+HGLRC s_DummyGlContext;
 
 void update()
 {
@@ -60,6 +61,9 @@ void render()
 	
 }
 
+void wmCreate();
+void wmDestroy();
+
 LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
 	try
@@ -69,36 +73,7 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 		{
 		case WM_CREATE:
 		{
-			PIXELFORMATDESCRIPTOR pfd = {
-				sizeof(PIXELFORMATDESCRIPTOR),
-				1,
-				PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-				PFD_TYPE_RGBA, 32,
-				0, 0, 0, 0, 0, 0,
-				0,
-				0,
-				0,
-				0, 0, 0, 0,
-				24, 8, 0,
-				PFD_MAIN_PLANE,
-				0,
-				0, 0, 0
-			};
-
-			HDC hdc = GetDC(hwnd);
-			GAME_FINALLY([&]() -> void { ReleaseDC(hwnd, hdc); });
-
-			int format;
-			format = ChoosePixelFormat(hdc, &pfd); 
-			SetPixelFormat(hdc,format, &pfd);
-
-			HGLRC hglrc = wglCreateContext(hdc);
-			GAME_IF_THROW_LAST_ERROR(!hglrc);
-			wglMakeCurrent(hdc, hglrc);
-			MainGlContext = hglrc;
-
-			printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
-
+			wmCreate();
 			break;
 		}
 		case WM_CLOSE:
@@ -108,9 +83,7 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 		}
 		case WM_DESTROY:
 		{
-			if (MainGlContext)
-				wglDeleteContext(MainGlContext);
-			PostQuitMessage(0);
+			wmDestroy();
 			break;
 		}
 		}
@@ -157,7 +130,7 @@ LRESULT CALLBACK dummyWindowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wPa
 			HGLRC hglrc = wglCreateContext(hdc);
 			GAME_IF_THROW_LAST_ERROR(!hglrc);
 			wglMakeCurrent(hdc, hglrc);
-			s_DummyMainGlContext = hglrc;
+			s_DummyGlContext = hglrc;
 
 			// Initialize GL
 			if (gl3wInit())
@@ -165,19 +138,6 @@ LRESULT CALLBACK dummyWindowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wPa
 			if (!gl3wIsSupported(4, 6))
 				throw Exception("OpenGL 4.6 is not supported."sv, 1);
 
-			// Create the real window
-			RECT r;
-			SetRect(&r, 0, 0, 1280, 720);
-			AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
-			MainWindow = CreateWindowW(
-				L"PolyverseGame",
-				L"Game",
-				WS_OVERLAPPEDWINDOW,
-				CW_USEDEFAULT, CW_USEDEFAULT,
-				(r.right - r.left), (r.bottom - r.top),
-				0, NULL, ModuleHandle, 0);
-			GAME_IF_THROW_LAST_ERROR(!MainWindow);
-			GAME_DEBUG_ASSERT(MainGlContext);
 			break;
 		}
 		case WM_CLOSE:
@@ -186,15 +146,17 @@ LRESULT CALLBACK dummyWindowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wPa
 		}
 		case WM_DESTROY:
 		{
-			if (s_DummyMainGlContext)
+			if (s_DummyGlContext)
 			{
-				wglDeleteContext(s_DummyMainGlContext);
-				s_DummyMainGlContext = NULL;
+				wglDeleteContext(s_DummyGlContext);
+				s_DummyGlContext = NULL;
 			}
+			/*
 			if (MainWindow)
 				ShowWindow(MainWindow, SW_SHOWNORMAL);
 			else
 				PostQuitMessage(0);
+			*/
 			break;
 		}
 		}
@@ -206,7 +168,7 @@ LRESULT CALLBACK dummyWindowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wPa
 	return DefWindowProcW(hwnd, uMsg, wParam, lParam);
 }
 
-void registerClass(wchar_t *className, WNDPROC wndProc, HICON hIcon)
+void registerClass(wchar_t *className, WNDPROC wndProc)
 {
 	WNDCLASSW wndClass;
 	wndClass.style = CS_DBLCLKS | CS_OWNDC;
@@ -214,7 +176,7 @@ void registerClass(wchar_t *className, WNDPROC wndProc, HICON hIcon)
 	wndClass.cbClsExtra = 0;
 	wndClass.cbWndExtra = 0;
 	wndClass.hInstance = ModuleHandle;
-	wndClass.hIcon = hIcon;
+	wndClass.hIcon = MainIcon;
 	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 	wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wndClass.lpszMenuName = NULL;
@@ -222,9 +184,10 @@ void registerClass(wchar_t *className, WNDPROC wndProc, HICON hIcon)
 	GAME_IF_THROW_LAST_ERROR(!RegisterClassW(&wndClass));
 }
 
-void createMainWindow(HICON hIcon)
+void wmCreate()
 {
-	registerClass(L"PolyverseGameDummy", dummyWindowProc, hIcon);
+	// Create dummy window for context
+	registerClass(L"PolyverseGameDummy", dummyWindowProc);
 	GAME_FINALLY([&]() -> void { UnregisterClassW(L"PolyverseGameDummy", ModuleHandle); });
 
 	RECT r;
@@ -239,66 +202,126 @@ void createMainWindow(HICON hIcon)
 		0, NULL, ModuleHandle, 0);
 	GAME_IF_THROW_LAST_ERROR(!hwnd);
 	GAME_FINALLY([&]() -> void { DestroyWindow(hwnd); });
+	GAME_DEBUG_ASSERT(s_DummyGlContext);
 
-	GAME_DEBUG_ASSERT(MainWindow);
+	PIXELFORMATDESCRIPTOR pfd = {
+	sizeof(PIXELFORMATDESCRIPTOR),
+	1,
+	PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+	PFD_TYPE_RGBA, 32,
+	0, 0, 0, 0, 0, 0,
+	0,
+	0,
+	0,
+	0, 0, 0, 0,
+	24, 8, 0,
+	PFD_MAIN_PLANE,
+	0,
+	0, 0, 0
+	};
+
+	HDC hdc = GetDC(hwnd);
+	GAME_FINALLY([&]() -> void { ReleaseDC(hwnd, hdc); });
+
+	int format;
+	format = ChoosePixelFormat(hdc, &pfd); 
+	SetPixelFormat(hdc,format, &pfd);
+
+	HGLRC hglrc = wglCreateContext(hdc);
+	GAME_IF_THROW_LAST_ERROR(!hglrc);
+	wglMakeCurrent(hdc, hglrc);
+	MainGlContext = hglrc;
+
+	printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+}
+
+void wmDestroy()
+{
+	if (MainGlContext)
+	{
+		wglDeleteContext(MainGlContext);
+		MainGlContext = NULL;
+	}
+	PostQuitMessage(0);
 }
 
 int main()
 {
 	try
 	{
-		// Get module handle
-		ModuleHandle = (HINSTANCE)GetModuleHandle(NULL);
-		GAME_FINALLY([&]() -> void { ModuleHandle = NULL; });
-		
-		// Use icon from the executable, if any
-		WCHAR szExePath[MAX_PATH];
-		GetModuleFileNameW(NULL, szExePath, MAX_PATH);
-		HICON hIcon = ExtractIconW(NULL, szExePath, 0);
-		
-		// Register the window class
-		registerClass(L"PolyverseGame", windowProc, hIcon);
-		GAME_FINALLY([&]() -> void { UnregisterClassW(L"PolyverseGame", ModuleHandle); });
-		
-		// Create a window
-		createMainWindow(hIcon);
-		GAME_FINALLY([&]() -> void { DestroyWindow(MainWindow); });
-		
-		// Message loop
-		MSG msg = { 0 };
-		do
 		{
-			try
+			// Get module handle
+			ModuleHandle = (HINSTANCE)GetModuleHandle(NULL);
+			GAME_FINALLY([&]() -> void { ModuleHandle = NULL; });
+
+			// Use icon from the executable, if any
 			{
-				if (PeekMessageW(&msg, NULL, 0U, 0U, PM_REMOVE))
+				WCHAR szExePath[MAX_PATH];
+				GetModuleFileNameW(NULL, szExePath, MAX_PATH);
+				MainIcon = ExtractIconW(NULL, szExePath, 0);
+			}
+			GAME_FINALLY([&]() -> void { MainIcon = NULL; });
+
+			// Register the window class
+			registerClass(L"PolyverseGame", windowProc);
+			GAME_FINALLY([&]() -> void { UnregisterClassW(L"PolyverseGame", ModuleHandle); });
+
+			// Create a window
+			RECT r;
+			SetRect(&r, 0, 0, 1280, 720);
+			AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
+			MainWindow = CreateWindowW(
+				L"PolyverseGame",
+				L"Game",
+				WS_OVERLAPPEDWINDOW,
+				CW_USEDEFAULT, CW_USEDEFAULT,
+				(r.right - r.left), (r.bottom - r.top),
+				0, NULL, ModuleHandle, 0);
+			GAME_IF_THROW_LAST_ERROR(!MainWindow);
+			GAME_DEBUG_ASSERT(MainGlContext);
+			GAME_DEBUG_ASSERT(!s_DummyGlContext);
+			GAME_FINALLY([&]() -> void { if (MainWindow) DestroyWindow(MainWindow); MainWindow = NULL; });
+
+			// Show the main window
+			ShowWindow(MainWindow, SW_SHOWNORMAL);
+
+			// Message loop
+			MSG msg = { 0 };
+			do
+			{
+				try
 				{
-					// Translate and dispatch the message
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-					if (s_WindowProcException)
+					if (PeekMessageW(&msg, NULL, 0U, 0U, PM_REMOVE))
 					{
-						std::exception_ptr ex = s_WindowProcException;
-						s_WindowProcException = null;
-						std::rethrow_exception(ex);
+						// Translate and dispatch the message
+						TranslateMessage(&msg);
+						DispatchMessage(&msg);
+						if (s_WindowProcException)
+						{
+							std::exception_ptr ex = s_WindowProcException;
+							s_WindowProcException = null;
+							std::rethrow_exception(ex);
+						}
+					}
+					else
+					{
+						update();
+						render();
 					}
 				}
-				else
+				catch (Exception &ex)
 				{
-					update();
-					render();
+					boxer::show(ex.what(), "Game Exception");
 				}
-			}
-			catch (Exception &ex)
-			{
-				boxer::show(ex.what(), "Game Exception");
-			}
-			catch (...)
-			{
-				boxer::show("A system exception occured.", "Game Exception");
-			}
-		} while (msg.message != WM_QUIT);
-		
+				catch (...)
+				{
+					boxer::show("A system exception occured.", "Game Exception");
+				}
+			} while (msg.message != WM_QUIT);
+		}
+
 		// Done
+		GAME_DEBUG_ASSERT(!MainGlContext);
 		return EXIT_SUCCESS;
 	}
 	catch (Exception &ex)
