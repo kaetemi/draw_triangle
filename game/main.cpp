@@ -385,11 +385,11 @@ int main()
 	}
 	catch (Exception &ex)
 	{
-		boxer::show(ex.what(), "Game Exception");
+		boxer::show(ex.what(), "Fatal Game Exception");
 	}
 	catch (...)
 	{
-		boxer::show("A system exception occured.", "Game Exception");
+		boxer::show("A system exception occured.", "Fatal Game Exception");
 	}
 	return EXIT_FAILURE;
 }
