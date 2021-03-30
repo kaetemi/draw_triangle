@@ -148,7 +148,7 @@ LRESULT CALLBACK dummyWindowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wPa
 			SetPixelFormat(hdc,format, &pfd);
 
 			HGLRC hglrc = wglCreateContext(hdc);
-			GAME_IF_THROW_LAST_ERROR(!hglrc);
+			GAME_THROW_LAST_ERROR_IF(!hglrc);
 			wglMakeCurrent(hdc, hglrc);
 			s_DummyGlContext = hglrc;
 			
@@ -195,7 +195,7 @@ void registerClass(wchar_t *className, WNDPROC wndProc)
 	wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
 	wndClass.lpszMenuName = NULL;
 	wndClass.lpszClassName = className;
-	GAME_IF_THROW_LAST_ERROR(!RegisterClassW(&wndClass));
+	GAME_THROW_LAST_ERROR_IF(!RegisterClassW(&wndClass));
 }
 
 void wmCreate()
@@ -215,12 +215,12 @@ void wmCreate()
 		(r.right - r.left), (r.bottom - r.top),
 		0, NULL, ModuleHandle, 0);
 	RETHROW_WND_PROC_EXCEPTION();
-	GAME_IF_THROW_LAST_ERROR(!hwnd);
+	GAME_THROW_LAST_ERROR_IF(!hwnd);
 	GAME_FINALLY([&]() -> void { DestroyWindow(hwnd); });
 	GAME_DEBUG_ASSERT(s_DummyGlContext);
 
 	PIXELFORMATDESCRIPTOR pfd = {
-		sizeof(PIXELFORMATDESCRIPTOR),
+		sizeof(PIXELFORMATDESCRIPTOR)/*,
 		1,
 		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
 		PFD_TYPE_RGBA, 32,
@@ -232,22 +232,48 @@ void wmCreate()
 		24, 8, 0,
 		PFD_MAIN_PLANE,
 		0,
-		0, 0, 0
+		0, 0, 0*/
 	};
 
 	HDC hdc = GetDC(hwnd);
 	GAME_FINALLY([&]() -> void { ReleaseDC(hwnd, hdc); });
 
+	// Require WGL_ARB_pixel_format 
+	// Require ARB_color_buffer_float
+
 	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 	if (!wglChoosePixelFormatARB)
 		throw Exception("Missing function `wglChoosePixelFormatARB`.");
 
+	/*
 	const int attribs[] = {
 		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
 		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
 		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
 		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
-		WGL_COLOR_BITS_ARB, 24,
+		WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_FLOAT_ARB,
+		// WGL_DEPTH_FLOAT_EXT, GL_TRUE,
+		WGL_RED_BITS_ARB, 32,
+		WGL_GREEN_BITS_ARB, 32,
+		WGL_BLUE_BITS_ARB, 32,
+		WGL_ALPHA_BITS_ARB, 32,
+		WGL_DEPTH_BITS_ARB, 24,
+		WGL_STENCIL_BITS_ARB, 8,
+		// WGL_SAMPLE_BUFFERS_ARB, 1,
+		// WGL_SAMPLES_ARB, 1,
+		WGL_COLORSPACE_EXT, WGL_COLORSPACE_LINEAR_EXT,
+		0, 0
+	};
+
+	*/
+	const int attribs[] = {
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+		WGL_RED_BITS_ARB, 8,
+		WGL_GREEN_BITS_ARB, 8,
+		WGL_BLUE_BITS_ARB, 8,
 		WGL_ALPHA_BITS_ARB, 8,
 		WGL_DEPTH_BITS_ARB, 24,
 		WGL_STENCIL_BITS_ARB, 8,
@@ -257,11 +283,10 @@ void wmCreate()
 
 	int format = 0;
 	UINT numFormats = 0;
-	if (!wglChoosePixelFormatARB(hdc, attribs, 0, 1, &format, &numFormats))
+	if (!wglChoosePixelFormatARB(hdc, attribs, 0, 1, &format, &numFormats) || !numFormats)
 		throw Exception("Failed to choose pixel format.");
 	
-	if (!SetPixelFormat(hdc, format, &pfd))
-		throw Exception("Failed to set pixel format.");
+	GAME_THROW_LAST_ERROR_IF(!SetPixelFormat(hdc, format, &pfd));
 
 	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 	if (!wglCreateContextAttribsARB)
@@ -276,7 +301,7 @@ void wmCreate()
 	};
 
 	HGLRC hglrc = wglCreateContextAttribsARB(hdc, NULL, contextAttribs);
-	GAME_IF_THROW_LAST_ERROR(!hglrc);
+	GAME_THROW_LAST_ERROR_IF(!hglrc);
 	wglMakeCurrent(hdc, hglrc);
 	MainGlContext = hglrc;
 
@@ -333,7 +358,7 @@ int main()
 				(r.right - r.left), (r.bottom - r.top),
 				0, NULL, ModuleHandle, 0);
 			RETHROW_WND_PROC_EXCEPTION();
-			GAME_IF_THROW_LAST_ERROR(!MainWindow);
+			GAME_THROW_LAST_ERROR_IF(!MainWindow);
 			GAME_DEBUG_ASSERT(MainGlContext);
 			GAME_DEBUG_ASSERT(!s_DummyGlContext);
 			GAME_FINALLY([&]() -> void { if (MainWindow) { DestroyWindow(MainWindow); }});

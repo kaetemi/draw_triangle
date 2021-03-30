@@ -94,8 +94,8 @@ private:
 
 #define GAME_THROW_HRESULT(hr) throw Win32Exception((hr), 0, __FILE__, __LINE__)
 #define GAME_THROW_LAST_ERROR() throw Win32Exception(S_OK, GetLastError(), __FILE__, __LINE__)
-#define GAME_IF_HRESULT_THROW(hr) if (hr) GAME_THROW_HRESULT(hr)
-#define GAME_IF_THROW_LAST_ERROR(cond) if (cond) GAME_THROW_LAST_ERROR()
+#define GAME_THROW_IF_HRESULT(hr) if (hr) GAME_THROW_HRESULT(hr)
+#define GAME_THROW_LAST_ERROR_IF(cond) if (cond) GAME_THROW_LAST_ERROR()
 
 #endif /* #ifndef GAME_WIN32_EXCEPTION_H */
 
