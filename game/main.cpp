@@ -51,6 +51,11 @@ namespace /* anonymous */ {
 std::exception_ptr s_WindowProcException = null;
 HGLRC s_DummyGlContext;
 
+void init()
+{
+
+}
+
 void update()
 {
 	
@@ -59,6 +64,11 @@ void update()
 void render()
 {
 	
+}
+
+void release()
+{
+
 }
 
 void wmCreate();
@@ -296,6 +306,9 @@ int main()
 
 			// Show the main window
 			ShowWindow(MainWindow, SW_SHOWNORMAL);
+
+			init();
+			GAME_FINALLY([&]() -> void { release(); });
 
 			// Message loop
 			MSG msg = { 0 };
