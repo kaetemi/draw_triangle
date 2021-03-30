@@ -34,6 +34,9 @@ This is it.
 */
 
 #include "platform.h"
+#include "win32_exception.h"
+
+#include <boxer/boxer.h>
 
 HINSTANCE g_ModuleHandle;
 HWND g_MainWindow;
@@ -64,64 +67,76 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 
 int main()
 {
-	// Get module handle
-	g_ModuleHandle = (HINSTANCE)GetModuleHandle(NULL);
-	
-	// Use icon from the executable, if any
-	HICON hIcon = NULL;
-	WCHAR szExePath[MAX_PATH];
-	GetModuleFileNameW(NULL, szExePath, MAX_PATH);
-	HICON hIcon = ExtractIconW(g_ModuleHandle, szExePath, 0);
-	
-	// Register the window class
-	WNDCLASS wndClass;
-	wndClass.style = CS_DBLCLKS;
-	wndClass.lpfnWndProc = windowProc;
-	wndClass.cbClsExtra = 0;
-	wndClass.cbWndExtra = 0;
-	wndClass.hInstance = g_ModuleHandle;
-	wndClass.hIcon = hIcon;
-	wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-	wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-	wndClass.lpszMenuName = NULL;
-	wndClass.lpszClassName = "PolyverseGame";
-	GAME_RELEASE_VERIFY(RegisterClass(&wndClass)); // FIXME: Error handling
-	
-	// Create a window
-	RECT r;
-	SetRect(&r, 0, 0, 1280, 720);
-	AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
-	g_MainWindow = CreateWindow(
-		"PolyverseGame",
-		L"Fantasy Space Game",
-		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT,
-		(r.right - r.left), (r.bottom - r.top),
-		0, NULL, g_ModuleHandle, 0);
-	GAME_RELEASE_ASSERT(g_MainWindow); // FIXME: Error handling
-	
-	// Message loop
-	MSG msg = { 0 };
-	do
+	try
 	{
-		if (PeekMessageW(&msg, NULL, 0U, 0U, PM_REMOVE))
+		// Get module handle
+		g_ModuleHandle = (HINSTANCE)GetModuleHandle(NULL);
+		GAME_FINALLY([&]() -> void { g_ModuleHandle = NULL; });
+		
+		// Use icon from the executable, if any
+		HICON hIcon = NULL;
+		WCHAR szExePath[MAX_PATH];
+		GetModuleFileNameW(NULL, szExePath, MAX_PATH);
+		HICON hIcon = ExtractIconW(g_ModuleHandle, szExePath, 0);
+		
+		// Register the window class
+		WNDCLASS wndClass;
+		wndClass.style = CS_DBLCLKS;
+		wndClass.lpfnWndProc = windowProc;
+		wndClass.cbClsExtra = 0;
+		wndClass.cbWndExtra = 0;
+		wndClass.hInstance = g_ModuleHandle;
+		wndClass.hIcon = hIcon;
+		wndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+		wndClass.lpszMenuName = NULL;
+		wndClass.lpszClassName = "PolyverseGame";
+		GAME_IF_THROW_LAST_ERROR(!RegisterClass(&wndClass));
+		GAME_FINALLY([&]() -> void { UnregisterClass("PolyverseGame", g_ModuleHandle); });
+		
+		// Create a window
+		RECT r;
+		SetRect(&r, 0, 0, 1280, 720);
+		AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
+		g_MainWindow = CreateWindow(
+			"PolyverseGame",
+			L"Game",
+			WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT, CW_USEDEFAULT,
+			(r.right - r.left), (r.bottom - r.top),
+			0, NULL, g_ModuleHandle, 0);
+		GAME_IF_THROW_LAST_ERROR(!g_MainWindow);
+		GAME_FINALLY([&]() -> void { DestroyWindow(g_MainWindow); });
+		
+		// Message loop
+		MSG msg = { 0 };
+		do
 		{
-			// Translate and dispatch the message
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-		else
-		{
-			update();
-			render();
-		}
-	} while (msg.message != WM_QUIT)
-	
-	// Done
-	DestroyWindow(g_MainWindow);
-	UnregisterClass("PolyverseGame", g_ModuleHandle);
-	
-	return EXIT_SUCCESS;
+			if (PeekMessageW(&msg, NULL, 0U, 0U, PM_REMOVE))
+			{
+				// Translate and dispatch the message
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+			}
+			else
+			{
+				update();
+				render();
+			}
+		} while (msg.message != WM_QUIT);
+		
+		// Done
+		return EXIT_SUCCESS;
+	}
+	catch (Exception &ex)
+	{
+		boxer::show(ex.what(), "Game Exception");
+	}
+	catch (...)
+	{
+		boxer::show("A system exception occured.", "Game Exception");
+	}
+	return EXIT_FAILURE;
 }
 
 /* end of file */

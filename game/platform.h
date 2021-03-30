@@ -119,6 +119,11 @@ using namespace std::string_view_literals;
 #define GAME_DEBUG_VERIFY(cond) do { cond; } while (false)
 #endif
 
+#define GAME_CONCAT_IMPL(a, b) x##y
+#define GAME_CONCAT(a, b) GAME_CONCAT_IMPL(a, b)
+
+#define GAME_FINALLY(f) auto GAME_CONCAT(finally__, __COUNTER__) = gsl::finally(f)
+
 #endif /* __cplusplus */
 
 #endif /* GAME_PLATFORM_H */
