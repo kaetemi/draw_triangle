@@ -38,6 +38,7 @@ This is it.
 
 #include <shellapi.h>
 #include <boxer/boxer.h>
+#include <GL/wglext.h>
 
 namespace game {
 
@@ -237,11 +238,43 @@ void wmCreate()
 	HDC hdc = GetDC(hwnd);
 	GAME_FINALLY([&]() -> void { ReleaseDC(hwnd, hdc); });
 
-	int format;
-	format = ChoosePixelFormat(hdc, &pfd); 
-	SetPixelFormat(hdc,format, &pfd);
+	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+	if (!wglChoosePixelFormatARB)
+		throw Exception("Missing function `wglChoosePixelFormatARB`.");
 
-	HGLRC hglrc = wglCreateContext(hdc);
+	const int attribs[] = {
+		WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+		WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB,
+		WGL_COLOR_BITS_ARB, 24,
+		WGL_ALPHA_BITS_ARB, 8,
+		WGL_DEPTH_BITS_ARB, 24,
+		WGL_STENCIL_BITS_ARB, 8,
+		WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+		WGL_COLORSPACE_EXT, WGL_COLORSPACE_LINEAR_EXT,
+		0, 0
+	};
+
+	int format = 0;
+	UINT numFormats = 0;
+	if (!wglChoosePixelFormatARB(hdc, attribs, 0, 1, &format, &numFormats))
+		throw Exception("Failed to choose pixel format.");
+	
+	if (!SetPixelFormat(hdc, format, &pfd))
+		throw Exception("Failed to set pixel format.");
+
+	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+	if (!wglCreateContextAttribsARB)
+		throw Exception("Missing function `wglCreateContextAttribsARB`.");
+
+	const int contextAttribs[] = {
+		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
+		WGL_CONTEXT_MINOR_VERSION_ARB, 6,
+		WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+		0, 0
+	};
+
+	HGLRC hglrc = wglCreateContextAttribsARB(hdc, NULL, contextAttribs);
 	GAME_IF_THROW_LAST_ERROR(!hglrc);
 	wglMakeCurrent(hdc, hglrc);
 	MainGlContext = hglrc;

@@ -64,6 +64,7 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/debugbreak
 	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/gsl/include
 	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/fmt/include
+	${CMAKE_CURRENT_SOURCE_DIR}/dependencies/opengl/api
 )
 
 ########################################################################
