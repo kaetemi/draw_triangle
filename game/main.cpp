@@ -85,6 +85,8 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 		}
 		case WM_CLOSE:
 		{
+			// by default calls DestroyWindow
+			// alternatively, implement some warning before closing
 			// return 0;
 			break;
 		}
@@ -138,7 +140,7 @@ LRESULT CALLBACK dummyWindowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wPa
 			GAME_IF_THROW_LAST_ERROR(!hglrc);
 			wglMakeCurrent(hdc, hglrc);
 			s_DummyGlContext = hglrc;
-
+			
 			// Initialize GL
 			if (gl3wInit())
 				throw Exception("OpenGL failed to initialize."sv, 1);
@@ -158,12 +160,6 @@ LRESULT CALLBACK dummyWindowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wPa
 				wglDeleteContext(s_DummyGlContext);
 				s_DummyGlContext = NULL;
 			}
-			/*
-			if (MainWindow)
-				ShowWindow(MainWindow, SW_SHOWNORMAL);
-			else
-				PostQuitMessage(0);
-			*/
 			break;
 		}
 		}
@@ -213,19 +209,19 @@ void wmCreate()
 	GAME_DEBUG_ASSERT(s_DummyGlContext);
 
 	PIXELFORMATDESCRIPTOR pfd = {
-	sizeof(PIXELFORMATDESCRIPTOR),
-	1,
-	PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-	PFD_TYPE_RGBA, 32,
-	0, 0, 0, 0, 0, 0,
-	0,
-	0,
-	0,
-	0, 0, 0, 0,
-	24, 8, 0,
-	PFD_MAIN_PLANE,
-	0,
-	0, 0, 0
+		sizeof(PIXELFORMATDESCRIPTOR),
+		1,
+		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
+		PFD_TYPE_RGBA, 32,
+		0, 0, 0, 0, 0, 0,
+		0,
+		0,
+		0,
+		0, 0, 0, 0,
+		24, 8, 0,
+		PFD_MAIN_PLANE,
+		0,
+		0, 0, 0
 	};
 
 	HDC hdc = GetDC(hwnd);
@@ -247,10 +243,12 @@ void wmDestroy()
 {
 	if (MainGlContext)
 	{
+		// Delete GL context
 		wglDeleteContext(MainGlContext);
 		MainGlContext = NULL;
 	}
-	PostQuitMessage(0);
+	MainWindow = NULL; // Evidently destroyed already
+	PostQuitMessage(0); // Quit game
 }
 
 int main()
@@ -289,7 +287,7 @@ int main()
 			GAME_IF_THROW_LAST_ERROR(!MainWindow);
 			GAME_DEBUG_ASSERT(MainGlContext);
 			GAME_DEBUG_ASSERT(!s_DummyGlContext);
-			GAME_FINALLY([&]() -> void { if (MainWindow) DestroyWindow(MainWindow); MainWindow = NULL; });
+			GAME_FINALLY([&]() -> void { if (MainWindow) { DestroyWindow(MainWindow); }});
 
 			// Show the main window
 			ShowWindow(MainWindow, SW_SHOWNORMAL);
