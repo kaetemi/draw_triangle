@@ -83,6 +83,9 @@ constexpr decltype(nullptr) null = nullptr;
 using namespace std::string_literals;
 using namespace std::string_view_literals;
 
+// Include gl3w
+#include <GL/gl3w.h>
+
 // Include GSL
 // auto _ = gsl::finally([&] { delete xyz; });
 #include "gsl/gsl_util"
