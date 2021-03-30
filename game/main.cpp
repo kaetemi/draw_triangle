@@ -95,6 +95,13 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 			wglMakeCurrent(hdc, hglrc);
 			g_GLContext = hglrc;
 
+			// Initialize GL
+			if (gl3wInit())
+				throw Exception("OpenGL failed to initialize."sv, 1);
+			if (!gl3wIsSupported(4, 6)
+				throw Exception("OpenGL 4.6 is not supported."sv, 1);
+			printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+
 			break;
 		}
 		case WM_CLOSE:
@@ -159,13 +166,6 @@ int main()
 			0, NULL, g_ModuleHandle, 0);
 		GAME_IF_THROW_LAST_ERROR(!g_MainWindow);
 		GAME_FINALLY([&]() -> void { DestroyWindow(g_MainWindow); });
-		
-		// Initialize GL
-		if (gl3wInit())
-			throw Exception("OpenGL failed to initialize."sv, 1);
-		if (!gl3wIsSupported(4, 6)
-			throw Exception("OpenGL 4.6 is not supported."sv, 1);
-		printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
 		
 		// Message loop
 		MSG msg = { 0 };
