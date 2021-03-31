@@ -282,12 +282,18 @@ void wmCreate()
 	wglMakeCurrent(hdc, hglrc);
 	MainGlContext = hglrc;
 
-	printf("OpenGL %s, GLSL %s\n"
-		"Vendor: %s, Renderer: %s\n",
-		glGetString(GL_VERSION),
-		glGetString(GL_SHADING_LANGUAGE_VERSION),
-		glGetString(GL_VENDOR),
-		glGetString(GL_RENDERER));
+	printf("OpenGL %s, GLSL %s\nVendor: %s, Renderer: %s\n",
+		glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION),
+		glGetString(GL_VENDOR), glGetString(GL_RENDERER));
+
+	PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
+	if (!wglGetExtensionsStringARB)
+		throw Exception("Missing function `wglGetExtensionsStringARB`.");
+
+	const char *wglExtensions = wglGetExtensionsStringARB(hdc);
+	const char *glExtension = (const char *)glGetString(GL_EXTENSIONS);
+	printf("WGL extensions: %s\nGL extensions: %s\n",
+		wglExtensions, glExtension);
 }
 
 void wmDestroy()
