@@ -282,7 +282,12 @@ void wmCreate()
 	wglMakeCurrent(hdc, hglrc);
 	MainGlContext = hglrc;
 
-	printf("OpenGL %s, GLSL %s\n", glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION));
+	printf("OpenGL %s, GLSL %s\n"
+		"Vendor: %s, Renderer: %s\n",
+		glGetString(GL_VERSION),
+		glGetString(GL_SHADING_LANGUAGE_VERSION),
+		glGetString(GL_VENDOR),
+		glGetString(GL_RENDERER));
 }
 
 void wmDestroy()
