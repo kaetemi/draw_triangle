@@ -260,7 +260,7 @@ void wmCreate()
 
 	int format = 0;
 	UINT numFormats = 0;
-	if (!wglChoosePixelFormatARB(hdc, attribs, 0, 1, &format, &numFormats) || !numFormats)
+	if (!wglChoosePixelFormatARB(hdc, attribs, NULL, 1, &format, &numFormats) || !numFormats)
 		throw Exception("Failed to choose pixel format.");
 	
 	GAME_THROW_LAST_ERROR_IF(!SetPixelFormat(hdc, format, &pfd));
