@@ -35,6 +35,7 @@ This is it.
 
 #include "platform.h"
 #include "win32_exception.h"
+#include "gl_exception.h"
 
 #include <shellapi.h>
 #include <boxer/boxer.h>
@@ -295,7 +296,9 @@ void wmCreate()
 		throw Exception("Missing function `wglGetExtensionsStringARB`.");
 
 	const char *wglExtensions = wglGetExtensionsStringARB(hdc);
+	GAME_THROW_IF_GL_ERROR();
 	const char *glExtension = (const char *)glGetString(GL_EXTENSIONS);
+	GAME_THROW_IF_GL_ERROR();
 	printf("WGL extensions: %s\nGL extensions: %s\n",
 		wglExtensions, glExtension);
 }
