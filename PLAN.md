@@ -38,3 +38,8 @@ Instead of storing the downloaded and generated code, make it part of the CMake 
 ## Do all the fancy GL Context creation stuff
 
 See https://www.khronos.org/opengl/wiki/Creating_an_OpenGL_Context_(WGL)
+
+## Replace Boxer
+
+It's crap, because it's using system encoding. We want UTF-8.
+Maybe fork it.
