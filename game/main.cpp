@@ -286,6 +286,7 @@ void wmCreate()
 	GAME_THROW_LAST_ERROR_IF(!hglrc);
 	wglMakeCurrent(hdc, hglrc);
 	MainGlContext = hglrc;
+	GAME_THROW_IF_GL_ERROR();
 
 	printf("OpenGL %s, GLSL %s\nVendor: %s, Renderer: %s\n",
 		glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION),
@@ -295,12 +296,26 @@ void wmCreate()
 	if (!wglGetExtensionsStringARB)
 		throw Exception("Missing function `wglGetExtensionsStringARB`.");
 
+	bool spirV = false;
+
 	const char *wglExtensions = wglGetExtensionsStringARB(hdc);
 	GAME_THROW_IF_GL_ERROR();
-	const char *glExtension = (const char *)glGetString(GL_EXTENSIONS);
+	printf("WGL extensions: %s\nGL extensions:",
+		wglExtensions);
+	GLint numExt;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &numExt);
 	GAME_THROW_IF_GL_ERROR();
-	printf("WGL extensions: %s\nGL extensions: %s\n",
-		wglExtensions, glExtension);
+	for (GLint i = 0; i < numExt; ++i)
+	{
+		const char *ext = (const char *)glGetStringi(GL_EXTENSIONS, i);
+		GAME_THROW_IF_GL_ERROR();
+		printf(" %s", ext);
+		if (!strcmp(ext, "ARB_gl_spirv"))
+			spirV = true;
+	}
+	printf("\n");
+
+	printf("ARB_gl_spirv: %s\n", spirV ? "TRUE" : "FALSE");
 }
 
 void wmDestroy()
