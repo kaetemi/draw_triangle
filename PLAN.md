@@ -31,6 +31,14 @@ For controls, better to use XInput directly.
 
 Draw a triangle, and do it properly. We need to get sRGB and Linear color spaces correct from the go!
 
+Get the Vulkan SDK for the GLSL to SPIR-V compiler.
+https://www.lunarg.com/vulkan-sdk/
+
+Set up CMake scripts to compile GLSL into embeddable headers.
+https://gist.github.com/evilactually/a0d191701cb48f157b05be7f74d79396
+https://snorristurluson.github.io/EmbeddedShaders/
+
+Optionally, support older systems...
 https://github.com/KhronosGroup/SPIRV-Cross
 
 ## Replace Boxer
