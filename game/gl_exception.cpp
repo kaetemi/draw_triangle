@@ -54,7 +54,7 @@ std::string_view getGlErrorString(GLenum flag)
 	case GL_STACK_OVERFLOW:
 		return "GL_STACK_OVERFLOW (" GAME_STR(GL_STACK_OVERFLOW) ")\nAn attempt has been made to perform an operation that would cause an internal stack to overflow."sv;
 	}
-	return "Unknown GL error flag"; // FIXME: Include flag value! (But Exception will no longer be literal...)
+	return "Unknown GL error flag"sv; // FIXME: Include flag value! (But Exception will no longer be literal...)
 }
 
 } /* anonymous namespace */
