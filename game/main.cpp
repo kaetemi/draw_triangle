@@ -40,6 +40,9 @@ This is it.
 #include <boxer/boxer.h>
 #include <GL/wglext.h>
 
+#define GAME_GL_MAJOR 4
+#define GAME_GL_MINOR 4
+
 namespace game {
 
 HINSTANCE ModuleHandle;
@@ -155,8 +158,9 @@ LRESULT CALLBACK dummyWindowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wPa
 			// Initialize GL
 			if (gl3wInit())
 				throw Exception("OpenGL failed to initialize."sv, 1);
-			if (!gl3wIsSupported(4, 6))
-				throw Exception("OpenGL 4.6 is not supported."sv, 1);
+			if (!gl3wIsSupported(GAME_GL_MAJOR, GAME_GL_MINOR))
+				throw Exception("OpenGL " GAME_STR(GAME_GL_MAJOR) "." GAME_STR(GAME_GL_MINOR)
+					" is not supported by the installed graphics drivers."sv, 1);
 
 			break;
 		}
@@ -270,8 +274,8 @@ void wmCreate()
 		throw Exception("Missing function `wglCreateContextAttribsARB`.");
 
 	const int contextAttribs[] = {
-		WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-		WGL_CONTEXT_MINOR_VERSION_ARB, 6,
+		WGL_CONTEXT_MAJOR_VERSION_ARB, GAME_GL_MAJOR,
+		WGL_CONTEXT_MINOR_VERSION_ARB, GAME_GL_MINOR,
 		WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
 		WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 		0, 0

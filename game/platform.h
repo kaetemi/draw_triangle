@@ -122,6 +122,9 @@ using namespace std::string_view_literals;
 #define GAME_DEBUG_VERIFY(cond) do { cond; } while (false)
 #endif
 
+#define GAME_STR(a) GAME_STR_IMPL(a)
+#define GAME_STR_IMPL(a) #a
+
 #define GAME_CONCAT_IMPL(a, b) a##b
 #define GAME_CONCAT(a, b) GAME_CONCAT_IMPL(a, b)
 

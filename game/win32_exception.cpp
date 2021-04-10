@@ -49,7 +49,7 @@ std::string_view getWin32Message(DWORD errorCode) noexcept
 		(LPWSTR)&msgBuf,
 		0, null);
 	if (!msgLen)
-		return null;
+		return std::string_view();
 	auto f7 = gsl::finally([msgBuf] { LocalFree(msgBuf); });
 
 	// Get required UTF-8 length (NUL-terminated length)
@@ -58,22 +58,22 @@ std::string_view getWin32Message(DWORD errorCode) noexcept
 		null, 0,
 		null, null);
 	if (reqLen <= 1) // Failed conversion or empty string
-		return null;
+		return std::string_view();
 
 	// Get UTF-8 string
 	char *utf8Buf = new (std::nothrow) char[reqLen];
 	if (!utf8Buf)
-		return null;
+		return std::string_view();
 	int utf8Len = WideCharToMultiByte(CP_UTF8, 0,
 		msgBuf, (int)(msgLen + 1),
 		utf8Buf, reqLen,
 		null, null);
 	if (!utf8Len) // Failed conversion
-		return null;
+		return std::string_view();
 	if (utf8Len <= 1) // Empty string
 	{
 		delete[] utf8Buf;
-		return null;
+		return std::string_view();
 	}
 	return std::string_view(utf8Buf, (ptrdiff_t)utf8Len - 1);
 }
@@ -90,7 +90,7 @@ std::string_view getMessage(const std::string_view systemMessage, const HRESULT 
 		+ fileTxt.size() + file.size() + lineTxt.size() + 11 + 1; // File: // a.cpp // , line: // 0 // \0
 	char *buf = new (std::nothrow) char[maxLen];
 	if (!buf)
-		return null;
+		return std::string_view();
 	ptrdiff_t i = 0;
 	if (!systemMessage.empty())
 	{
