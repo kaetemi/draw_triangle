@@ -80,10 +80,10 @@ std::string_view getWin32Message(DWORD errorCode) noexcept
 
 std::string_view getMessage(const std::string_view systemMessage, const HRESULT hr, const DWORD errorCode, const std::string_view file, const int line) noexcept
 {
-	const std::string_view hresultTxt = "HRESULT: 0x";
-	const std::string_view dwordTxt = "DWORD: 0x";
-	const std::string_view fileTxt = "File: ";
-	const std::string_view lineTxt = ", line: ";
+	const std::string_view hresultTxt = "HRESULT: 0x"sv;
+	const std::string_view dwordTxt = "DWORD: 0x"sv;
+	const std::string_view fileTxt = "File: "sv;
+	const std::string_view lineTxt = ", line: "sv;
 	const ptrdiff_t maxLen = (!systemMessage.empty() ? (systemMessage.size() + 1) : 0) // Message // \n
 		+ (hr != S_OK ? (hresultTxt.size() + sizeof(hr) * 2 + 1) : 0) // HRESULT: 0x // 00000000 // \n
 		+ ((hr == S_OK && errorCode) ? (dwordTxt.size() + sizeof(errorCode) * 2 + 1) : 0) // DWORD: 0x // 00000000 // \n
@@ -146,7 +146,7 @@ std::string_view copyString(const std::string_view str) noexcept
 }
 
 Win32Exception::Win32Exception(const HRESULT hr, const DWORD errorCode, const StringView file, const int line) noexcept
-	: base("Unknown Win32 exception", 1),
+	: base("Unknown Win32 exception"sv, 1),
 	m_HResult(hr), m_ErrorCode(errorCode ? errorCode : (HRESULT_FACILITY(hr) == FACILITY_WINDOWS ? HRESULT_CODE(hr) : hr)), m_File(file), m_Line(line),
 	m_SystemMessage(getWin32Message(m_ErrorCode)), m_Message(getMessage(m_SystemMessage.sv(), hr, m_ErrorCode, file.sv(), line))
 {

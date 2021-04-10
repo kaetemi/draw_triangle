@@ -36,22 +36,35 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace game {
 
-// TODO: Include a context string?
-
 class GlException : public Exception
 {
 public:
-	GlException(GLenum flag);
-	~GlException();
+	using base = Exception;
+
+	GlException(const GLenum flag, const StringView file, const int line) noexcept;
+	inline GlException(const GLenum flag, const std::string_view file, const int line) noexcept : GlException(flag, StringView(file), line) { }
+	virtual ~GlException() noexcept;
+
+	GlException(const GlException &other) noexcept;
+	GlException &operator=(GlException const &other) noexcept;
+
+	[[nodiscard]] virtual char const *what() const;
+
+	inline std::string_view file() const { return m_File.sv(); };
+	inline int line() const { return m_Line; };
 	
 private:
 	GLenum m_Flag;
+	StringView m_File; // String view, but guaranteed NUL-terminated
+	int m_Line;
+	StringView m_StaticMessage; // String view, but guaranteed empty or NUL-terminated
+	StringView m_Message; // String view, but guaranteed empty or NUL-terminated
 	
 };
 
 } /* namespace game */
 
-#define GAME_THROW_GL_ERROR(flag) throw GlException((flag))
+#define GAME_THROW_GL_ERROR(flag) throw GlException((flag), __FILE__, __LINE__)
 #define GAME_THROW_IF_GL_ERROR() while (GLenum flag = glGetError()) { GAME_THROW_GL_ERROR(flag); }
 
 #endif /* #ifndef GAME_GL_EXCEPTION_H */

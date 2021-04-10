@@ -54,19 +54,101 @@ std::string_view getGlErrorString(GLenum flag)
 	case GL_STACK_OVERFLOW:
 		return "GL_STACK_OVERFLOW (" GAME_STR(GL_STACK_OVERFLOW) ")\nAn attempt has been made to perform an operation that would cause an internal stack to overflow."sv;
 	}
-	return "Unknown GL error flag"sv; // FIXME: Include flag value! (But Exception will no longer be literal...)
+	return std::string_view(); // "Unknown OpenGL error flag"sv;
+}
+
+std::string_view getMessage(const std::string_view staticMessage, const GLenum flag, const std::string_view file, const int line) noexcept
+{
+	const std::string_view unknownPre = "("sv;
+	const std::string_view unknownPost = ")\nUnknown OpenGL error flag"sv;
+	const std::string_view fileTxt = "File: "sv;
+	const std::string_view lineTxt = ", line: "sv;
+	const ptrdiff_t maxLen = (!staticMessage.empty() ? (staticMessage.size() + 1) : (unknownPre.size() + unknownPost.size() + sizeof(flag) * 2 + 1)) // Message // \n
+		+ fileTxt.size() + file.size() + lineTxt.size() + 11 + 1; // File: // a.cpp // , line: // 0 // \0
+	char *buf = new (std::nothrow) char[maxLen];
+	if (!buf)
+		return std::string_view();
+	ptrdiff_t i = 0;
+	if (!staticMessage.empty())
+	{
+		memcpy(buf /* &buf[i] */, staticMessage.data(), staticMessage.size());
+		i += staticMessage.size();
+		if (!i || buf[i - 1] != '\n')
+		{
+			buf[i] = '\n';
+			++i;
+		}
+	}
+	else
+	{
+		memcpy(&buf[i], unknownPre.data(), unknownPre.size());
+		i += unknownPre.size();
+		sprintf_s(&buf[i], maxLen - i, "%08x", flag);
+		i += 8;
+		memcpy(&buf[i], unknownPost.data(), unknownPost.size());
+		i += unknownPost.size();
+		buf[i] = '\n';
+		++i;
+	}
+	memcpy(&buf[i], fileTxt.data(), fileTxt.size());
+	i += fileTxt.size();
+	memcpy(&buf[i], file.data(), file.size());
+	i += file.size();
+	memcpy(&buf[i], lineTxt.data(), lineTxt.size());
+	i += lineTxt.size();
+	i += sprintf_s(&buf[i], maxLen - i, "%d", line);
+	buf[i] = '\0';
+	return std::string_view(buf, i);
+}
+
+std::string_view copyString(const std::string_view str) noexcept
+{
+	if (str.empty())
+		return std::string_view();
+	char *buf = new (std::nothrow) char[str.size() + 1];
+	if (!buf)
+		return std::string_view();
+	memcpy(buf, str.data(), str.size());
+	buf[str.size()] = '\0';
+	return std::string_view(buf, str.size());
 }
 
 } /* anonymous namespace */
 
-GlException::GlException(GLenum flag) : m_Flag(flag), Exception(getGlErrorString(flag), 1)
+GlException::GlException(const GLenum flag, const StringView file, const int line) noexcept 
+	: base("Unknown OpenGL exception"sv, 1),
+	m_Flag(flag), m_File(file), m_Line(line),
+	m_StaticMessage(getGlErrorString(flag)), 
+	m_Message(getMessage(m_StaticMessage.sv(), flag, file.sv(), line))
 {
 	// no-op
 }
 
 GlException::~GlException()
 {
-	// no-op
+	delete[] m_Message.Data;
+}
+
+GlException::GlException(const GlException &other) noexcept : base(other),
+m_Flag(other.m_Flag), m_File(other.m_File), m_Line(other.m_Line),
+m_StaticMessage(other.m_StaticMessage), m_Message(copyString(other.m_Message.sv()))
+{
+
+}
+
+GlException &GlException::operator=(GlException const &other) noexcept
+{
+	if (this != &other) 
+	{
+		this->~GlException();
+		new (this) GlException(other);
+	}
+	return *this;
+}
+
+[[nodiscard]] char const *GlException::what() const
+{
+	return m_Message.Data ? m_Message.Data : (m_StaticMessage.Data ? m_StaticMessage.Data : base::what());
 }
 
 } /* namespace game */
