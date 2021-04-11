@@ -297,6 +297,7 @@ void wmCreate()
 		throw Exception("Missing function `wglGetExtensionsStringARB`.");
 
 	bool spirV = false;
+	bool spirVExt = false;
 
 	const char *wglExtensions = wglGetExtensionsStringARB(hdc);
 	GAME_THROW_IF_GL_ERROR();
@@ -312,10 +313,13 @@ void wmCreate()
 		printf(" %s", ext);
 		if (!strcmp(ext, "GL_ARB_gl_spirv"))
 			spirV = true;
+		else if (!strcmp(ext, "GL_ARB_spirv_extensions"))
+			spirVExt = true;
 	}
 	printf("\n");
 
 	printf("ARB_gl_spirv: %s\n", spirV ? "TRUE" : "FALSE");
+	printf("ARB_spirv_extensions: %s\n", spirVExt ? "TRUE" : "FALSE");
 }
 
 void wmDestroy()
