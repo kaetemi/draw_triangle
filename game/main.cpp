@@ -394,12 +394,7 @@ int main()
 						// Translate and dispatch the message
 						TranslateMessage(&msg);
 						DispatchMessage(&msg);
-						if (s_WindowProcException)
-						{
-							std::exception_ptr ex = s_WindowProcException;
-							s_WindowProcException = null;
-							std::rethrow_exception(ex);
-						}
+						RETHROW_WND_PROC_EXCEPTION();
 					}
 					else
 					{
