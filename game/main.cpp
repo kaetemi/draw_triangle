@@ -49,6 +49,7 @@ namespace game {
 HINSTANCE ModuleHandle;
 HICON MainIcon;
 HWND MainWindow;
+HDC MainDeviceContext;
 HGLRC MainGlContext;
 
 namespace /* anonymous */ {
@@ -68,7 +69,18 @@ void update()
 
 void render()
 {
-	
+	// Set current context
+	GAME_THROW_LAST_ERROR_IF(!wglMakeCurrent(MainDeviceContext, MainGlContext));
+
+	// Clear background
+	static const GLfloat bg[4] = { 0.0f, 0.125f, 0.25f, 1.0f };
+	glClearBufferfv(GL_COLOR, 0, bg);
+	GAME_THROW_IF_GL_ERROR();
+
+	// ...
+
+	// Swap
+	GAME_THROW_LAST_ERROR_IF(!SwapBuffers(MainDeviceContext));
 }
 
 void release()
@@ -76,7 +88,7 @@ void release()
 
 }
 
-void wmCreate();
+void wmCreate(HWND hwnd);
 void wmDestroy();
 
 #define RETHROW_WND_PROC_EXCEPTION() if (s_WindowProcException) \
@@ -95,7 +107,7 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 		{
 		case WM_CREATE:
 		{
-			wmCreate();
+			wmCreate(hwnd);
 			break;
 		}
 		case WM_CLOSE:
@@ -203,7 +215,7 @@ void registerClass(wchar_t *className, WNDPROC wndProc)
 	GAME_THROW_LAST_ERROR_IF(!RegisterClassW(&wndClass));
 }
 
-void wmCreate()
+void wmCreate(HWND hwnd)
 {
 	// Create dummy window for context
 	registerClass(L"PolyverseGameDummy", dummyWindowProc);
@@ -212,7 +224,7 @@ void wmCreate()
 	RECT r;
 	SetRect(&r, 0, 0, 640, 480);
 	AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
-	HWND hwnd = CreateWindowW(
+	HWND dummyHwnd = CreateWindowW(
 		L"PolyverseGameDummy",
 		L"OpenGL Context",
 		WS_OVERLAPPEDWINDOW,
@@ -220,28 +232,16 @@ void wmCreate()
 		(r.right - r.left), (r.bottom - r.top),
 		0, NULL, ModuleHandle, 0);
 	RETHROW_WND_PROC_EXCEPTION();
-	GAME_THROW_LAST_ERROR_IF(!hwnd);
-	GAME_FINALLY([&]() -> void { DestroyWindow(hwnd); });
+	GAME_THROW_LAST_ERROR_IF(!dummyHwnd);
+	GAME_FINALLY([&]() -> void { DestroyWindow(dummyHwnd); });
 	GAME_DEBUG_ASSERT(s_DummyGlContext);
 
 	PIXELFORMATDESCRIPTOR pfd = {
-		sizeof(PIXELFORMATDESCRIPTOR)/*,
-		1,
-		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,
-		PFD_TYPE_RGBA, 32,
-		0, 0, 0, 0, 0, 0,
-		0,
-		0,
-		0,
-		0, 0, 0, 0,
-		24, 8, 0,
-		PFD_MAIN_PLANE,
-		0,
-		0, 0, 0*/
+		sizeof(PIXELFORMATDESCRIPTOR)
 	};
 
 	HDC hdc = GetDC(hwnd);
-	GAME_FINALLY([&]() -> void { ReleaseDC(hwnd, hdc); });
+	MainDeviceContext = hdc;
 
 	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
 	if (!wglChoosePixelFormatARB)
@@ -284,9 +284,9 @@ void wmCreate()
 
 	HGLRC hglrc = wglCreateContextAttribsARB(hdc, NULL, contextAttribs);
 	GAME_THROW_LAST_ERROR_IF(!hglrc);
-	wglMakeCurrent(hdc, hglrc);
+	GAME_THROW_LAST_ERROR_IF(!wglMakeCurrent(hdc, hglrc));
 	MainGlContext = hglrc;
-	GAME_THROW_IF_GL_ERROR();
+	GAME_THROW_IF_GL_ERROR(); // Should not happen, but flush it anyway!
 
 	printf("OpenGL %s, GLSL %s\nVendor: %s, Renderer: %s\n",
 		glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION),
@@ -335,6 +335,11 @@ void wmCreate()
 
 void wmDestroy()
 {
+	if (MainDeviceContext)
+	{
+		ReleaseDC(MainWindow, MainDeviceContext);
+		MainDeviceContext = NULL;
+	}
 	if (MainGlContext)
 	{
 		// Delete GL context
