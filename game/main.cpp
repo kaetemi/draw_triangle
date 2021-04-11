@@ -52,14 +52,42 @@ HWND MainWindow;
 HDC MainDeviceContext;
 HGLRC MainGlContext;
 
+bool ArbSpirV;
+bool ArbSpirVExt;
+
 namespace /* anonymous */ {
 
 std::exception_ptr s_WindowProcException = null;
 HGLRC s_DummyGlContext;
 
+const GLchar s_PosVertGlsl[] = {
+#include "pos.vert.inl"
+};
+const GLchar *const s_PosVertGlslArr[] = {
+	s_PosVertGlsl
+};
+
+const uint8_t s_PosVertSpv[] = {
+#include "pos.vert.spv.inl"
+};
+
+GLuint s_PosVertShader;
+
 void init()
 {
-
+	s_PosVertShader = glCreateShader(GL_VERTEX_SHADER);
+	if (ArbSpirV)
+	{
+		glShaderBinary(1, &s_PosVertShader, GL_SHADER_BINARY_FORMAT_SPIR_V, s_PosVertSpv, sizeof(s_PosVertSpv));
+		glSpecializeShader(s_PosVertShader, "main", 0, null, null);
+	}
+	else
+	{
+		GLint len = s_PosVertGlsl[sizeof(s_PosVertGlsl) - 1] ? sizeof(s_PosVertGlsl) : sizeof(s_PosVertGlsl) - 1;
+		glShaderSource(s_PosVertShader, 1, s_PosVertGlslArr, &len);
+		glCompileShader(s_PosVertShader);
+	}
+	GAME_THROW_IF_GL_ERROR();
 }
 
 void update()
@@ -85,7 +113,11 @@ void render()
 
 void release()
 {
-
+	if (s_PosVertShader)
+	{
+		glDeleteShader(s_PosVertShader);
+		s_PosVertShader = NULL;
+	}
 }
 
 void wmCreate(HWND hwnd);
@@ -296,11 +328,6 @@ void wmCreate(HWND hwnd)
 	if (!wglGetExtensionsStringARB)
 		throw Exception("Missing function `wglGetExtensionsStringARB`.");
 
-	bool spirV = false;
-	bool spirVExt = false;
-	bool extDsa = false;
-	bool arbDsa = false;
-
 	const char *wglExtensions = wglGetExtensionsStringARB(hdc);
 	GAME_THROW_IF_GL_ERROR();
 	printf("WGL extensions: %s\nGL extensions:",
@@ -314,23 +341,20 @@ void wmCreate(HWND hwnd)
 		GAME_THROW_IF_GL_ERROR();
 		printf(" %s", ext);
 		if (!strcmp(ext, "GL_ARB_gl_spirv"))
-			spirV = true;
+			ArbSpirV = true;
 		else if (!strcmp(ext, "GL_ARB_spirv_extensions"))
-			spirVExt = true;
-		else if (!strcmp(ext, "GL_EXT_direct_state_access"))
-			extDsa = true;
-		else if (!strcmp(ext, "GL_ARB_direct_state_access"))
-			arbDsa = true;
+			ArbSpirVExt = true;
 	}
 	printf("\n");
 
-	printf("ARB_gl_spirv: %s\n", spirV ? "TRUE" : "FALSE"); // GL 4.6
-	printf("ARB_spirv_extensions: %s\n", spirVExt ? "TRUE" : "FALSE"); // GL 4.6
-	printf("EXT_direct_state_access: %s\n", extDsa ? "TRUE" : "FALSE"); 
-	printf("ARB_direct_state_access: %s\n", arbDsa ? "TRUE" : "FALSE"); // GL 4.5
+	printf("ARB_gl_spirv: %s\n", ArbSpirV ? "TRUE" : "FALSE"); // GL 4.6
+	printf("ARB_spirv_extensions: %s\n", ArbSpirVExt ? "TRUE" : "FALSE"); // GL 4.6
 
-	if (arbDsa)
-		GAME_DEBUG_ASSERT(glCreateTextures);
+	if (ArbSpirV)
+	{
+		GAME_DEBUG_ASSERT(glShaderBinary);
+		GAME_DEBUG_ASSERT(glSpecializeShader);
+	}
 }
 
 void wmDestroy()
