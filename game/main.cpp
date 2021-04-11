@@ -60,12 +60,9 @@ namespace /* anonymous */ {
 std::exception_ptr s_WindowProcException = null;
 HGLRC s_DummyGlContext;
 
-const GLchar s_PosVertGlsl[] = {
+const GLchar *s_PosVertGlsl[] = { {
 #include "pos.vert.inl"
-};
-const GLchar *const s_PosVertGlslArr[] = {
-	s_PosVertGlsl
-};
+} };
 
 const uint8_t s_PosVertSpv[] = {
 #include "pos.vert.spv.inl"
@@ -75,6 +72,7 @@ GLuint s_PosVertShader;
 
 void init()
 {
+	// Create vertex shader
 	s_PosVertShader = glCreateShader(GL_VERTEX_SHADER);
 	if (ArbSpirV)
 	{
@@ -83,8 +81,8 @@ void init()
 	}
 	else
 	{
-		GLint len = s_PosVertGlsl[sizeof(s_PosVertGlsl) - 1] ? sizeof(s_PosVertGlsl) : sizeof(s_PosVertGlsl) - 1;
-		glShaderSource(s_PosVertShader, 1, s_PosVertGlslArr, &len);
+		GLint len = sizeof(s_PosVertGlsl[0]);
+		glShaderSource(s_PosVertShader, 1, s_PosVertGlsl, &len);
 		glCompileShader(s_PosVertShader);
 	}
 	GAME_THROW_IF_GL_ERROR();
