@@ -310,7 +310,7 @@ void wmCreate()
 		const char *ext = (const char *)glGetStringi(GL_EXTENSIONS, i);
 		GAME_THROW_IF_GL_ERROR();
 		printf(" %s", ext);
-		if (!strcmp(ext, "ARB_gl_spirv"))
+		if (!strcmp(ext, "GL_ARB_gl_spirv"))
 			spirV = true;
 	}
 	printf("\n");
