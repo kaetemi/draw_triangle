@@ -40,8 +40,3 @@ https://snorristurluson.github.io/EmbeddedShaders/
 
 Optionally, support older systems...
 https://github.com/KhronosGroup/SPIRV-Cross
-
-## Replace Boxer
-
-It's crap, because it's using system encoding. We want UTF-8.
-Maybe fork it.
