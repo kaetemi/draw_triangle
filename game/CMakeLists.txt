@@ -15,5 +15,4 @@ ADD_EXECUTABLE(game
 
 TARGET_LINK_LIBRARIES(game PUBLIC
   gl3w
-  Boxer
 )

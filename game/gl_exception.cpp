@@ -146,9 +146,9 @@ GlException &GlException::operator=(GlException const &other) noexcept
 	return *this;
 }
 
-[[nodiscard]] char const *GlException::what() const
+[[nodiscard]] std::string_view GlException::what() const
 {
-	return m_Message.Data ? m_Message.Data : (m_StaticMessage.Data ? m_StaticMessage.Data : base::what());
+	return m_Message.Data ? m_Message.sv() : (m_StaticMessage.Data ? m_StaticMessage.sv() : base::what());
 }
 
 } /* namespace game */

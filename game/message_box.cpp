@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2020  Jan BOON (Kaetemi) <jan.boon@kaetemi.be>
+Copyright (C) 2021  Jan BOON (Kaetemi) <jan.boon@kaetemi.be>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -27,46 +27,54 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */
 
-#pragma once
-#ifndef GAME_EXCEPTION_H
-#define GAME_EXCEPTION_H
-
-#include "platform.h"
+#include "message_box.h"
 
 namespace game {
 
-struct Exception
+extern HWND MainWindow;
+
+namespace /* anonymous */ {
+
+UINT s_APC = GetACP();
+
+} /* anonymous namespace */
+
+void showMessageBox(std::string_view message, std::string_view title, MessageBoxStyle style)
 {
-public:
-	struct StringView
+	if (s_APC == CP_UTF8 && !(&message[0])[message.size()] && !(&title[0])[title.size()])
 	{
-	public:
-		StringView() : Data(null), Size(0) { }
-		inline StringView(std::string_view str) : Data(str.data()), Size(str.size()) { }
-		inline std::string_view sv() const { return std::string_view(Data, Size); }
-		const char *Data;
-		ptrdiff_t Size;
-	};
+		MessageBoxA(MainWindow, &message[0], &title[0], (UINT)style);
+	}
+	else
+	{
+		wchar_t *wmessage = (wchar_t *)_malloca((message.size() + 1) * 4);
+		GAME_FINALLY([&]() -> void { _freea(wmessage); });
+		wchar_t *wtitle = (wchar_t *)_malloca((title.size() + 1) * 4);
+		GAME_FINALLY([&]() -> void { _freea(wtitle); });
 
-	Exception() noexcept;
-	Exception(std::string_view str) noexcept;
-	Exception(std::string_view litStr, int) noexcept;
-	virtual ~Exception() noexcept;
+		if (wmessage)
+		{
+			int wideLen = MultiByteToWideChar(CP_UTF8, 0,
+				&message[0], (int)message.size(),
+				wmessage, (int)message.size() * 2);
+			wmessage[wideLen] = 0;
+		}
 
-	Exception(const Exception &other) noexcept;
-	Exception &operator=(Exception const &other) noexcept;
+		if (wtitle)
+		{
+			int wideLen = MultiByteToWideChar(CP_UTF8, 0,
+				&title[0], (int)title.size(),
+				wtitle, (int)title.size() * 2);
+			wtitle[wideLen] = 0;
+		}
 
-	// NUL-terminated string view
-	[[nodiscard]] virtual std::string_view what() const;
-
-private:
-	StringView m_What;
-	bool m_Delete;
-
-};
+		MessageBoxW(MainWindow, 
+			wmessage ? wmessage : L"Out of memory",
+			wtitle ? wtitle : L"Game",
+			(UINT)style);
+	}
+}
 
 } /* namespace game */
-
-#endif /* #ifndef GAME_EXCEPTION_H */
 
 /* end of file */

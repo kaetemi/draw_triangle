@@ -93,9 +93,9 @@ Exception &Exception::operator=(Exception const &other) noexcept
 	return *this;
 }
 
-[[nodiscard]] char const *Exception::what() const
+[[nodiscard]] std::string_view Exception::what() const
 {
-	return m_What.Data ? m_What.Data : "An unknown exception occurred.";
+	return m_What.Data ? m_What.sv() : "An unknown exception occurred."sv;
 }
 
 } /* namespace game */

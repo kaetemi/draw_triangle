@@ -60,7 +60,7 @@ public:
 	Win32Exception(const Win32Exception &other) noexcept;
 	Win32Exception &operator=(Win32Exception const &other) noexcept;
 
-	[[nodiscard]] virtual char const *what() const;
+	[[nodiscard]] virtual std::string_view what() const override;
 
 	inline std::string_view file() const { return m_File.sv(); };
 	inline int line() const { return m_Line; };

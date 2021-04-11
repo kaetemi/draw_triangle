@@ -48,7 +48,7 @@ public:
 	GlException(const GlException &other) noexcept;
 	GlException &operator=(GlException const &other) noexcept;
 
-	[[nodiscard]] virtual char const *what() const;
+	[[nodiscard]] virtual std::string_view what() const override;
 
 	inline std::string_view file() const { return m_File.sv(); };
 	inline int line() const { return m_Line; };

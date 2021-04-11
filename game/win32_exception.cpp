@@ -176,9 +176,9 @@ Win32Exception &Win32Exception::operator=(Win32Exception const &other) noexcept
 	return *this;
 }
 
-[[nodiscard]] char const *Win32Exception::what() const
+[[nodiscard]] std::string_view Win32Exception::what() const
 {
-	return m_Message.Data ? m_Message.Data : (m_SystemMessage.Data ? m_SystemMessage.Data : base::what());
+	return m_Message.Data ? m_Message.sv() : (m_SystemMessage.Data ? m_SystemMessage.sv(): base::what());
 }
 
 Exception::StringView Win32Exception::systemMessageImpl(const HRESULT hr, DWORD errorCode)

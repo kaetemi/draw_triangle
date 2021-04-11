@@ -1,6 +1,6 @@
 /*
 
-Copyright (C) 2020  Jan BOON (Kaetemi) <jan.boon@kaetemi.be>
+Copyright (C) 2021  Jan BOON (Kaetemi) <jan.boon@kaetemi.be>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -28,45 +28,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #pragma once
-#ifndef GAME_EXCEPTION_H
-#define GAME_EXCEPTION_H
+#ifndef GAME_MESSAGE_BOX_H
+#define GAME_MESSAGE_BOX_H
 
 #include "platform.h"
 
 namespace game {
 
-struct Exception
+enum class MessageBoxStyle
 {
-public:
-	struct StringView
-	{
-	public:
-		StringView() : Data(null), Size(0) { }
-		inline StringView(std::string_view str) : Data(str.data()), Size(str.size()) { }
-		inline std::string_view sv() const { return std::string_view(Data, Size); }
-		const char *Data;
-		ptrdiff_t Size;
-	};
-
-	Exception() noexcept;
-	Exception(std::string_view str) noexcept;
-	Exception(std::string_view litStr, int) noexcept;
-	virtual ~Exception() noexcept;
-
-	Exception(const Exception &other) noexcept;
-	Exception &operator=(Exception const &other) noexcept;
-
-	// NUL-terminated string view
-	[[nodiscard]] virtual std::string_view what() const;
-
-private:
-	StringView m_What;
-	bool m_Delete;
-
+	Message = MB_ICONINFORMATION,
+	Warning = MB_ICONWARNING,
+	Error = MB_ICONERROR,
+	Question = MB_ICONQUESTION,
 };
+
+void showMessageBox(std::string_view message, std::string_view title, MessageBoxStyle style);
 
 } /* namespace game */
 
-#endif /* #ifndef GAME_EXCEPTION_H */
+#endif /* #ifndef GAME_MESSAGE_BOX_H */
 
 /* end of file */

@@ -36,9 +36,9 @@ This is it.
 #include "platform.h"
 #include "win32_exception.h"
 #include "gl_exception.h"
+#include "message_box.h"
 
 #include <shellapi.h>
-#include <boxer/boxer.h>
 #include <GL/wglext.h>
 
 #define GAME_GL_MAJOR 4
@@ -409,11 +409,11 @@ int main()
 				}
 				catch (Exception &ex)
 				{
-					boxer::show(ex.what(), "Game Exception");
+					showMessageBox(ex.what(), "Game Exception"sv, MessageBoxStyle::Error);
 				}
 				catch (...)
 				{
-					boxer::show("A system exception occured.", "Game Exception");
+					showMessageBox("A system exception occured."sv, "Game Exception"sv, MessageBoxStyle::Error);
 				}
 			} while (msg.message != WM_QUIT);
 		}
@@ -424,11 +424,11 @@ int main()
 	}
 	catch (Exception &ex)
 	{
-		boxer::show(ex.what(), "Fatal Game Exception");
+		showMessageBox(ex.what(), "Fatal Game Exception"sv, MessageBoxStyle::Error);
 	}
 	catch (...)
 	{
-		boxer::show("A system exception occured.", "Fatal Game Exception");
+		showMessageBox("A system exception occured."sv, "Fatal Game Exception"sv, MessageBoxStyle::Error);
 	}
 	return EXIT_FAILURE;
 }
