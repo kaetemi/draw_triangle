@@ -298,6 +298,8 @@ void wmCreate()
 
 	bool spirV = false;
 	bool spirVExt = false;
+	bool extDsa = false;
+	bool arbDsa = false;
 
 	const char *wglExtensions = wglGetExtensionsStringARB(hdc);
 	GAME_THROW_IF_GL_ERROR();
@@ -315,11 +317,20 @@ void wmCreate()
 			spirV = true;
 		else if (!strcmp(ext, "GL_ARB_spirv_extensions"))
 			spirVExt = true;
+		else if (!strcmp(ext, "GL_EXT_direct_state_access"))
+			extDsa = true;
+		else if (!strcmp(ext, "GL_ARB_direct_state_access"))
+			arbDsa = true;
 	}
 	printf("\n");
 
-	printf("ARB_gl_spirv: %s\n", spirV ? "TRUE" : "FALSE");
-	printf("ARB_spirv_extensions: %s\n", spirVExt ? "TRUE" : "FALSE");
+	printf("ARB_gl_spirv: %s\n", spirV ? "TRUE" : "FALSE"); // GL 4.6
+	printf("ARB_spirv_extensions: %s\n", spirVExt ? "TRUE" : "FALSE"); // GL 4.6
+	printf("EXT_direct_state_access: %s\n", extDsa ? "TRUE" : "FALSE"); 
+	printf("ARB_direct_state_access: %s\n", arbDsa ? "TRUE" : "FALSE"); // GL 4.5
+
+	if (arbDsa)
+		GAME_DEBUG_ASSERT(glCreateTextures);
 }
 
 void wmDestroy()
