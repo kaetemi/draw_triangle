@@ -127,7 +127,7 @@ void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *co
 #define GAME_LOAD_SHADER(shader, name, ext) \
 	loadShader((shader), \
 		shaders::name::ext::spv, sizeof(shaders::name::ext::spv), \
-		shaders::name::ext::glsl, sizeof(shaders::name::ext::glsl[0]));
+		shaders::name::ext::glsl, sizeof(shaders::name::ext::glsl0));
 
 #include "col.vs_6_0.inl"
 #include "col.ps_6_0.inl"
