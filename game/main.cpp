@@ -141,7 +141,6 @@ void render()
 void release()
 {
 	GAME_SAFE_C_DELETE(glDeleteProgram, s_ColProgram);
-	
 }
 
 void wmCreate(HWND hwnd);
