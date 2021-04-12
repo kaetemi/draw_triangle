@@ -38,3 +38,7 @@ Find out how to make fmtlib output to OutputDebugStringW without allocating an s
 ## Build
 
 Detect the Vulkan SDK more properly, don't depend on the environment variable.
+
+## Test for program link errors
+
+https://www.khronos.org/opengl/wiki/Example/GLSL_Program_Link_Error_Testing

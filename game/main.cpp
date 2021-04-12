@@ -114,7 +114,15 @@ void init()
 		glAttachShader(program, vertShader);
 		glAttachShader(program, fragShader);
 		glLinkProgram(program);
+		glDetachShader(program, vertShader);
+		glDetachShader(program, fragShader);
 		GAME_THROW_IF_GL_ERROR();
+
+		GLint linkStatus;
+		glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+		if (!linkStatus)
+			GAME_THROW(Exception("Program not linked"));
+
 		colProgram = program;
 		program = NULL;
 	}
@@ -181,7 +189,13 @@ void render()
 	glClearBufferfv(GL_COLOR, 0, bg);
 	GAME_THROW_IF_GL_ERROR();
 
-	// ...
+	// Draw triangle
+	glUseProgram(s_ColProgram);
+	GAME_THROW_IF_GL_ERROR();
+	glBindVertexArray(s_TriVao);
+	GAME_THROW_IF_GL_ERROR();
+	glDrawArrays(GL_TRIANGLES, 0, 1);
+	GAME_THROW_IF_GL_ERROR();
 
 	// Swap
 	GAME_THROW_LAST_ERROR_IF(!SwapBuffers(MainDeviceContext));
