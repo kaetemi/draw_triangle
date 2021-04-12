@@ -60,7 +60,7 @@ namespace /* anonymous */ {
 std::exception_ptr s_WindowProcException = null;
 HGLRC s_DummyGlContext;
 
-const GLchar *s_PosVertGlsl[] = { {
+const char *s_PosVertGlsl[] = { {
 #include "pos.vert.inl"
 } };
 
@@ -70,22 +70,31 @@ const uint8_t s_PosVertSpv[] = {
 
 GLuint s_PosVertShader;
 
+void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *const *glsl, size_t glslLen)
+{
+	if (ArbSpirV && spv)
+	{
+		glShaderBinary(1, &shader, GL_SHADER_BINARY_FORMAT_SPIR_V, spv, (GLsizei)spvLen);
+		glSpecializeShader(shader, "main", 0, null, null);
+	}
+	else if (glsl)
+	{
+		GLint len = (GLint)glslLen;
+		glShaderSource(shader, 1, glsl, &len);
+		glCompileShader(shader);
+	}
+	else
+	{
+		throw Exception("No shader loaded");
+	}
+	GAME_THROW_IF_GL_ERROR();
+}
+
 void init()
 {
 	// Create vertex shader
 	s_PosVertShader = glCreateShader(GL_VERTEX_SHADER);
-	if (ArbSpirV)
-	{
-		glShaderBinary(1, &s_PosVertShader, GL_SHADER_BINARY_FORMAT_SPIR_V, s_PosVertSpv, sizeof(s_PosVertSpv));
-		glSpecializeShader(s_PosVertShader, "main", 0, null, null);
-	}
-	else
-	{
-		GLint len = sizeof(s_PosVertGlsl[0]);
-		glShaderSource(s_PosVertShader, 1, s_PosVertGlsl, &len);
-		glCompileShader(s_PosVertShader);
-	}
-	GAME_THROW_IF_GL_ERROR();
+	loadShader(s_PosVertShader, s_PosVertSpv, sizeof(s_PosVertSpv), s_PosVertGlsl, sizeof(s_PosVertGlsl[0]));
 }
 
 void update()
