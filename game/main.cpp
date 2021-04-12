@@ -399,12 +399,13 @@ void wmDestroy()
 		wglDeleteContext(MainGlContext);
 		MainGlContext = NULL;
 	}
-	MainWindow = NULL; // Evidently destroyed already
+	MainWindow = NULL; // Evidently being destroyed already
 	PostQuitMessage(0); // Quit game
 }
 
 void setCmdLine(PWSTR lpCmdLine)
 { 
+	// Convert command line to UTF-8 argv
 	int argc;
 	LPWSTR *argvw = CommandLineToArgvW(lpCmdLine, &argc);
 	GAME_THROW_LAST_ERROR_IF(!argvw);
