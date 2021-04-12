@@ -30,3 +30,7 @@ For controls, better to use XInput directly.
 ## Draw a triangle in OpenGL
 
 Draw a triangle, and do it properly. We need to get sRGB and Linear color spaces correct from the go!
+
+## Debug output
+
+Find out how to make fmtlib output to OutputDebugStringW without allocating an std::string.
