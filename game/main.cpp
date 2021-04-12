@@ -60,7 +60,7 @@ bool ArbSpirVExt;
 
 namespace /* anonymous */ {
 
-std::exception_ptr s_WindowProcException = null;
+std::exception_ptr s_WindowProcException;
 HGLRC s_DummyGlContext;
 
 #include "col.vs_6_0.inl"
