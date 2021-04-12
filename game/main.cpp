@@ -63,11 +63,6 @@ namespace /* anonymous */ {
 std::exception_ptr s_WindowProcException;
 HGLRC s_DummyGlContext;
 
-#include "col.vs_6_0.inl"
-#include "col.ps_6_0.inl"
-
-GLuint s_ColProgram;
-
 void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *const *glsl, size_t glslLen)
 {
 	if (ArbSpirV && spv)
@@ -93,6 +88,13 @@ void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *co
 		shaders::name::ext::spv, sizeof(shaders::name::ext::spv), \
 		shaders::name::ext::glsl, sizeof(shaders::name::ext::glsl[0]));
 
+#include "col.vs_6_0.inl"
+#include "col.ps_6_0.inl"
+
+GLuint s_ColProgram;
+GLuint s_TriBuffers[2];
+GLuint s_TriVao;
+
 void init()
 {
 	// Create vertex color program
@@ -117,8 +119,51 @@ void init()
 		program = NULL;
 	}
 
+	GLuint triBuffers[2];
+	glGenBuffers(2, triBuffers);
+	GAME_FINALLY([&]() -> void { GAME_SAFE_GL_DELETE_ALL(glDeleteBuffers, triBuffers); });
+	GLuint triVao;
+	glGenVertexArrays(1, &triVao);
+	GAME_FINALLY([&]() -> void { GAME_SAFE_GL_DELETE_ONE(glDeleteVertexArrays, triVao); });
+	{
+		static const GLfloat positions[] = {
+			0.25f, -0.25f, 0.5f, 1.0f,
+			-0.25f, -0.25f, 0.5f, 1.0f,
+			0.25f, 0.25f, 0.5f, 1.0f,
+		};
+
+		static const GLfloat colors[] = {
+			1.0f, 0.0f, 0.0f, 1.0f,
+			0.0f, 1.0f, 0.0f, 1.0f,
+			0.0f, 0.0f, 1.0f, 1.0f,
+		};
+
+		glBindVertexArray(triVao);
+
+		glBindBuffer(GL_ARRAY_BUFFER, triBuffers[0]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(positions), positions, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, null);
+		glEnableVertexAttribArray(0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, triBuffers[1]);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, null);
+		glEnableVertexAttribArray(1);
+
+		glBindBuffer(GL_ARRAY_BUFFER, NULL);
+		glBindVertexArray(NULL);
+
+		GAME_THROW_IF_GL_ERROR();
+	}
+
 	s_ColProgram = colProgram;
 	colProgram = NULL;
+	s_TriBuffers[0] = triBuffers[0];
+	s_TriBuffers[1] = triBuffers[1];
+	triBuffers[0] = NULL;
+	triBuffers[1] = NULL;
+	s_TriVao = triVao;
+	triVao = NULL;
 }
 
 void update()
@@ -144,6 +189,8 @@ void render()
 
 void release()
 {
+	GAME_SAFE_GL_DELETE_ALL(glDeleteBuffers, s_TriBuffers);
+	GAME_SAFE_GL_DELETE_ONE(glDeleteVertexArrays, s_TriVao);
 	GAME_SAFE_C_DELETE(glDeleteProgram, s_ColProgram);
 }
 

@@ -170,6 +170,14 @@ using namespace std::string_view_literals;
 		ptr = NULL; \
 	}
 
+#define GAME_SAFE_GL_DELETE_ALL(del, arr) \
+	del(sizeof(arr) / sizeof(arr[0]), (arr)); \
+	memset((arr), 0, sizeof(arr));
+
+#define GAME_SAFE_GL_DELETE_ONE(del, ptr) \
+	del(1, &ptr); \
+	ptr = NULL;
+
 #define GAME_SAFE_DELETE(ptr) \
 	delete ptr; \
 	ptr = null;
