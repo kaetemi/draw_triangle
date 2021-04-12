@@ -34,3 +34,7 @@ Draw a triangle, and do it properly. We need to get sRGB and Linear color spaces
 ## Debug output
 
 Find out how to make fmtlib output to OutputDebugStringW without allocating an std::string.
+
+## Build
+
+Detect the Vulkan SDK more properly, don't depend on the environment variable.

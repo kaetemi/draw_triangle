@@ -79,4 +79,6 @@ ADD_SUBDIRECTORY(dependencies/gl3w)
 ADD_SUBDIRECTORY(dependencies/fmt)
 ADD_SUBDIRECTORY(game)
 
+SET_PROPERTY(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT game)
+
 ########################################################################
