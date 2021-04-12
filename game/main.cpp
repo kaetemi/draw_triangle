@@ -111,11 +111,7 @@ void render()
 
 void release()
 {
-	if (s_PosVertShader)
-	{
-		glDeleteShader(s_PosVertShader);
-		s_PosVertShader = NULL;
-	}
+	GAME_SAFE_C_DELETE(glDeleteShader, s_PosVertShader);
 }
 
 void wmCreate(HWND hwnd);

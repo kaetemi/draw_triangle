@@ -130,6 +130,18 @@ using namespace std::string_view_literals;
 
 #define GAME_FINALLY(f) auto GAME_CONCAT(finally__, __COUNTER__) = gsl::finally(f)
 
+#define GAME_SAFE_C_DELETE(del, ptr) if (ptr) \
+	{ \
+		del(ptr); \
+		ptr = NULL; \
+	}
+
+#define GAME_SAFE_DELETE(ptr) if (ptr) \
+	{ \
+		delete ptr; \
+		ptr = null; \
+	}
+
 #endif /* __cplusplus */
 
 #endif /* GAME_PLATFORM_H */
