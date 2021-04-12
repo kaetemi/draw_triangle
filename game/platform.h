@@ -90,6 +90,9 @@ using namespace std::string_view_literals;
 // auto _ = gsl::finally([&] { delete xyz; });
 #include "gsl/util"
 
+// Include FMT
+#include <fmt/core.h>
+
 // The usual
 #include <functional>
 
@@ -125,7 +128,8 @@ using namespace std::string_view_literals;
 #define GAME_DEBUG_ASSERT(cond) do { if (!(cond)) GAME_DEBUG_BREAK(); } while (false)
 #define GAME_DEBUG_VERIFY(cond) do { if (!(cond)) GAME_DEBUG_BREAK(); } while (false)
 #define GAME_DEBUG_OUTPUT(str) do { \
-		std::string_view sv = (str); \
+		auto s = (str); \
+		std::string_view sv = s; \
 		wchar_t *wstr = (wchar_t *)_malloca((sv.size() + 2) * 2); \
 		if (!wstr) break; \
 		GAME_FINALLY([&]() -> void { _freea(wstr); }); \
@@ -137,7 +141,8 @@ using namespace std::string_view_literals;
 		OutputDebugStringW(wstr); \
 	} while (false)
 #define GAME_DEBUG_OUTPUT_LF(str) do { \
-		std::string_view sv = (str); \
+		auto s = (str); \
+		std::string_view sv = s; \
 		wchar_t *wstr = (wchar_t *)_malloca((sv.size() + 2) * 2); \
 		if (!wstr) break; \
 		GAME_FINALLY([&]() -> void { _freea(wstr); }); \

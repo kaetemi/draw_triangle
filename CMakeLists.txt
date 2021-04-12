@@ -76,6 +76,7 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 ########################################################################
 
 ADD_SUBDIRECTORY(dependencies/gl3w)
+ADD_SUBDIRECTORY(dependencies/fmt)
 ADD_SUBDIRECTORY(game)
 
 ########################################################################

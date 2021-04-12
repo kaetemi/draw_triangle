@@ -70,8 +70,11 @@ ADD_EXECUTABLE(game
 )
 
 ADD_DEPENDENCIES(game
-  shaders)
+  shaders
+  gl3w
+)
 
 TARGET_LINK_LIBRARIES(game PUBLIC
   gl3w
+  fmt
 )
