@@ -63,25 +63,25 @@ namespace /* anonymous */ {
 std::exception_ptr s_WindowProcException = null;
 HGLRC s_DummyGlContext;
 
-const char *s_PosVertGlsl[] = { {
-#include "pos.vert.inl"
+const char *s_ColVertGlsl[] = { {
+#include "col.vs_6_0.glsl.inl"
 } };
 
-const uint8_t s_PosVertSpv[] = {
-#include "pos.vert.spv.inl"
+const uint8_t s_ColVertSpv[] = {
+#include "col.vs_6_0.spv.inl"
 };
 
-GLuint s_PosVertShader;
+GLuint s_ColVertShader;
 
-const char *s_PosColVertGlsl[] = { {
-#include "pos_col.vert.inl"
+const char *s_ColFragGlsl[] = { {
+#include "col.ps_6_0.glsl.inl"
 	} };
 
-const uint8_t s_PosColVertSpv[] = {
-#include "pos_col.vert.spv.inl"
+const uint8_t s_ColFragSpv[] = {
+#include "col.ps_6_0.spv.inl"
 };
 
-GLuint s_PosColVertShader;
+GLuint s_ColFragShader;
 
 void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *const *glsl, size_t glslLen)
 {
@@ -106,11 +106,10 @@ void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *co
 void init()
 {
 	// Create vertex shader
-	s_PosVertShader = glCreateShader(GL_VERTEX_SHADER);
-	loadShader(s_PosVertShader, s_PosVertSpv, sizeof(s_PosVertSpv), s_PosVertGlsl, sizeof(s_PosVertGlsl[0]));
-
-	s_PosColVertShader = glCreateShader(GL_VERTEX_SHADER);
-	loadShader(s_PosColVertShader, s_PosColVertSpv, sizeof(s_PosColVertSpv), s_PosColVertGlsl, sizeof(s_PosColVertGlsl[0]));
+	s_ColVertShader = glCreateShader(GL_VERTEX_SHADER);
+	loadShader(s_ColVertShader, s_ColVertSpv, sizeof(s_ColVertSpv), s_ColVertGlsl, sizeof(s_ColVertGlsl[0]));
+	s_ColFragShader = glCreateShader(GL_FRAGMENT_SHADER);
+	loadShader(s_ColFragShader, s_ColFragSpv, sizeof(s_ColFragSpv), s_ColFragGlsl, sizeof(s_ColFragGlsl[0]));
 }
 
 void update()
@@ -136,8 +135,8 @@ void render()
 
 void release()
 {
-	GAME_SAFE_C_DELETE(glDeleteShader, s_PosColVertShader);
-	GAME_SAFE_C_DELETE(glDeleteShader, s_PosVertShader);
+	GAME_SAFE_C_DELETE(glDeleteShader, s_ColFragShader);
+	GAME_SAFE_C_DELETE(glDeleteShader, s_ColVertShader);
 }
 
 void wmCreate(HWND hwnd);
