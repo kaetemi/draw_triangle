@@ -47,9 +47,9 @@ bool showMessageBox(std::string_view message, std::string_view title, MessageBox
 	}
 	else
 	{
-		wchar_t *wmessage = (wchar_t *)_malloca((message.size() + 1) * 4);
+		wchar_t *wmessage = (wchar_t *)_malloca((message.size() + 1) * 2);
 		GAME_FINALLY([&]() -> void { _freea(wmessage); });
-		wchar_t *wtitle = (wchar_t *)_malloca((title.size() + 1) * 4);
+		wchar_t *wtitle = (wchar_t *)_malloca((title.size() + 1) * 2);
 		GAME_FINALLY([&]() -> void { _freea(wtitle); });
 
 		if (wmessage)

@@ -106,6 +106,14 @@ using namespace std::string_view_literals;
 #define GAME_RELEASE
 #endif
 
+#define GAME_STR(a) GAME_STR_IMPL(a)
+#define GAME_STR_IMPL(a) #a
+
+#define GAME_CONCAT_IMPL(a, b) a##b
+#define GAME_CONCAT(a, b) GAME_CONCAT_IMPL(a, b)
+
+#define GAME_FINALLY(f) auto GAME_CONCAT(finally__, __COUNTER__) = gsl::finally(f)
+
 // Include debug_break
 #include <debugbreak.h>
 #define GAME_RELEASE_BREAK() debug_break()
@@ -116,19 +124,40 @@ using namespace std::string_view_literals;
 #define GAME_DEBUG_BREAK() debug_break()
 #define GAME_DEBUG_ASSERT(cond) do { if (!(cond)) GAME_DEBUG_BREAK(); } while (false)
 #define GAME_DEBUG_VERIFY(cond) do { if (!(cond)) GAME_DEBUG_BREAK(); } while (false)
+#define GAME_DEBUG_OUTPUT(str) do { \
+		std::string_view sv = (str); \
+		wchar_t *wstr = (wchar_t *)_malloca((sv.size() + 2) * 2); \
+		if (!wstr) break; \
+		GAME_FINALLY([&]() -> void { _freea(wstr); }); \
+		int wlen = MultiByteToWideChar(CP_UTF8, 0, \
+			&sv[0], (int)sv.size(), \
+			wstr, (int)sv.size() * 2); \
+		if (!wlen) break; \
+		wstr[wlen] = 0; \
+		OutputDebugStringW(wstr); \
+	} while (false)
+#define GAME_DEBUG_OUTPUT_LF(str) do { \
+		std::string_view sv = (str); \
+		wchar_t *wstr = (wchar_t *)_malloca((sv.size() + 2) * 2); \
+		if (!wstr) break; \
+		GAME_FINALLY([&]() -> void { _freea(wstr); }); \
+		int wlen = MultiByteToWideChar(CP_UTF8, 0, \
+			&sv[0], (int)sv.size(), \
+			wstr, (int)sv.size() * 2); \
+		if (!wlen) break; \
+		wstr[wlen] = '\n'; \
+		wstr[wlen + 1] = 0; \
+		OutputDebugStringW(wstr); \
+	} while (false)
+#define GAME_THROW(ex) do { auto ex_ = (ex); GAME_DEBUG_OUTPUT_LF(ex_.what()); debug_break(); throw ex_; } while (false)
 #else
 #define GAME_DEBUG_BREAK() do { } while (false)
 #define GAME_DEBUG_ASSERT(cond) do { } while (false)
 #define GAME_DEBUG_VERIFY(cond) do { cond; } while (false)
+#define GAME_DEBUG_OUTPUT(str) do { } while (false)
+#define GAME_DEBUG_OUTPUT_LF(str) do { } while (false)
+#define GAME_THROW(ex) do { throw ex; } while (false)
 #endif
-
-#define GAME_STR(a) GAME_STR_IMPL(a)
-#define GAME_STR_IMPL(a) #a
-
-#define GAME_CONCAT_IMPL(a, b) a##b
-#define GAME_CONCAT(a, b) GAME_CONCAT_IMPL(a, b)
-
-#define GAME_FINALLY(f) auto GAME_CONCAT(finally__, __COUNTER__) = gsl::finally(f)
 
 #define GAME_SAFE_C_DELETE(del, ptr) if (ptr) \
 	{ \

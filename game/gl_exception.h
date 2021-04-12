@@ -67,7 +67,7 @@ private:
 
 } /* namespace game */
 
-#define GAME_THROW_GL_ERROR(flag) throw GlException((flag), GAME_CONCAT(__FILE__, sv), __LINE__)
+#define GAME_THROW_GL_ERROR(flag) GAME_THROW(GlException((flag), GAME_CONCAT(__FILE__, sv), __LINE__))
 #define GAME_THROW_IF_GL_ERROR() while (GLenum flag = glGetError()) { GAME_THROW_GL_ERROR(flag); }
 
 #endif /* #ifndef GAME_GL_EXCEPTION_H */

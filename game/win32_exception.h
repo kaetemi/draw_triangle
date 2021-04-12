@@ -92,8 +92,8 @@ private:
 
 } /* namespace game */
 
-#define GAME_THROW_HRESULT(hr) throw Win32Exception((hr), 0, GAME_CONCAT(__FILE__, sv), __LINE__)
-#define GAME_THROW_LAST_ERROR() throw Win32Exception(S_OK, GetLastError(), GAME_CONCAT(__FILE__, sv), __LINE__)
+#define GAME_THROW_HRESULT(hr) GAME_THROW(Win32Exception((hr), 0, GAME_CONCAT(__FILE__, sv), __LINE__))
+#define GAME_THROW_LAST_ERROR() GAME_THROW(Win32Exception(S_OK, GetLastError(), GAME_CONCAT(__FILE__, sv), __LINE__))
 #define GAME_THROW_IF_HRESULT(hr) if (hr) GAME_THROW_HRESULT(hr)
 #define GAME_THROW_LAST_ERROR_IF(cond) if (cond) GAME_THROW_LAST_ERROR()
 
