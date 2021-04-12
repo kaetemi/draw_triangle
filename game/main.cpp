@@ -63,6 +63,46 @@ namespace /* anonymous */ {
 std::exception_ptr s_WindowProcException;
 HGLRC s_DummyGlContext;
 
+void checkCompileStatus(GLuint shader)
+{
+	GLint status;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+	GAME_THROW_IF_GL_ERROR();
+	if (!status)
+	{
+		GLint logLength = 0;
+		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+		GAME_THROW_IF_GL_ERROR();
+
+		std::string log(logLength, 0);
+		glGetShaderInfoLog(shader, logLength, &logLength, &log[0]);
+		GAME_THROW_IF_GL_ERROR();
+		log.resize(logLength);
+
+		GAME_THROW(Exception(log));
+	}
+}
+
+void checkLinkStatus(GLuint program)
+{
+	GLint status;
+	glGetProgramiv(program, GL_LINK_STATUS, &status);
+	GAME_THROW_IF_GL_ERROR();
+	if (!status)
+	{
+		GLint logLength = 0;
+		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &logLength);
+		GAME_THROW_IF_GL_ERROR();
+
+		std::string log(logLength, 0);
+		glGetProgramInfoLog(program, logLength, &logLength, &log[0]);
+		GAME_THROW_IF_GL_ERROR();
+		log.resize(logLength);
+
+		GAME_THROW(Exception(log));
+	}
+}
+
 void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *const *glsl, size_t glslLen)
 {
 	if (ArbSpirV && spv)
@@ -81,6 +121,7 @@ void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *co
 		throw Exception("No shader loaded");
 	}
 	GAME_THROW_IF_GL_ERROR();
+	checkCompileStatus(shader);
 }
 
 #define GAME_LOAD_SHADER(shader, name, ext) \
@@ -117,11 +158,7 @@ void init()
 		glDetachShader(program, vertShader);
 		glDetachShader(program, fragShader);
 		GAME_THROW_IF_GL_ERROR();
-
-		GLint linkStatus;
-		glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
-		if (!linkStatus)
-			GAME_THROW(Exception("Program not linked"));
+		checkLinkStatus(program);
 
 		colProgram = program;
 		program = NULL;
