@@ -52,6 +52,9 @@ HWND MainWindow;
 HDC MainDeviceContext;
 HGLRC MainGlContext;
 
+int ArgC;
+char **ArgV;
+
 bool ArbSpirV;
 bool ArbSpirVExt;
 
@@ -379,6 +382,39 @@ void wmDestroy()
 	PostQuitMessage(0); // Quit game
 }
 
+void setCmdLine(PWSTR lpCmdLine)
+{ 
+	int argc;
+	LPWSTR *argvw = CommandLineToArgvW(lpCmdLine, &argc);
+	GAME_THROW_LAST_ERROR_IF(!argvw);
+	if (argc == 0) return;
+	GAME_FINALLY([&]() -> void { LocalFree(argvw); });
+	int len = sizeof(char *) * argc;
+	for (int i = 0; i < argc; ++i)
+	{
+		int reqLen = WideCharToMultiByte(CP_UTF8, 0,
+			argvw[i], -1,
+			null, 0,
+			null, null);
+		GAME_THROW_LAST_ERROR_IF(!reqLen);
+		len += reqLen;
+	}
+	char **argv = (char **)(new char[len]);
+	char *argi = (char *)(&argv[argc]);
+	for (int i = 0; i < argc; ++i)
+	{
+		argv[i] = argi;
+		int resLen = WideCharToMultiByte(CP_UTF8, 0,
+			argvw[i], -1,
+			argi, len - (int)((ptrdiff_t)argi - (ptrdiff_t)argv),
+			null, null);
+		GAME_THROW_LAST_ERROR_IF(!resLen);
+		argi += resLen;
+	}
+	ArgC = argc;
+	ArgV = argv;
+}
+
 int main()
 {
 	try
@@ -388,6 +424,10 @@ int main()
 #ifndef NDEBUG
 			_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
+
+			// Cmd line
+			game::setCmdLine(GetCommandLineW());
+			GAME_FINALLY([&]() -> void { delete[](char *)ArgV; ArgV = null; });
 
 			// Get module handle
 			ModuleHandle = (HINSTANCE)GetModuleHandle(NULL);

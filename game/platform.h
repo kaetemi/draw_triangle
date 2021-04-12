@@ -170,11 +170,9 @@ using namespace std::string_view_literals;
 		ptr = NULL; \
 	}
 
-#define GAME_SAFE_DELETE(ptr) if (ptr) \
-	{ \
-		delete ptr; \
-		ptr = null; \
-	}
+#define GAME_SAFE_DELETE(ptr) \
+	delete ptr; \
+	ptr = null;
 
 #endif /* __cplusplus */
 
