@@ -63,21 +63,8 @@ namespace /* anonymous */ {
 std::exception_ptr s_WindowProcException = null;
 HGLRC s_DummyGlContext;
 
-const uint8_t c_ColVertSpv[] = {
-#include "col.vs_6_0.spv.inl"
-};
-
-const char *c_ColVertGlsl[] = { {
-#include "col.vs_6_0.glsl.inl"
-} };
-
-const uint8_t c_ColFragSpv[] = {
-#include "col.ps_6_0.spv.inl"
-};
-
-const char *c_ColFragGlsl[] = { {
-#include "col.ps_6_0.glsl.inl"
-} };
+#include "col.vs_6_0.inl"
+#include "col.ps_6_0.inl"
 
 GLuint s_ColProgram;
 
@@ -101,14 +88,19 @@ void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *co
 	GAME_THROW_IF_GL_ERROR();
 }
 
+#define GAME_LOAD_SHADER(shader, name, ext) \
+	loadShader((shader), \
+		shaders::name::ext::spv, sizeof(shaders::name::ext::spv), \
+		shaders::name::ext::glsl, sizeof(shaders::name::ext::glsl[0]));
+
 void init()
 {
 	// Create vertex color program
 	GLuint colVertShader = glCreateShader(GL_VERTEX_SHADER);
-	loadShader(colVertShader, c_ColVertSpv, sizeof(c_ColVertSpv), c_ColVertGlsl, sizeof(c_ColVertGlsl[0]));
+	GAME_LOAD_SHADER(colVertShader, col, vs_6_0);
 	GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteShader, colVertShader); });
 	GLuint colFragShader = glCreateShader(GL_FRAGMENT_SHADER);
-	loadShader(colFragShader, c_ColFragSpv, sizeof(c_ColFragSpv), c_ColFragGlsl, sizeof(c_ColFragGlsl[0]));
+	GAME_LOAD_SHADER(colFragShader, col, ps_6_0);
 	GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteShader, colFragShader); });
 	s_ColProgram = glCreateProgram();
 	glAttachShader(s_ColProgram, colVertShader);
