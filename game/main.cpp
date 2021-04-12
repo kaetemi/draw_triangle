@@ -63,25 +63,23 @@ namespace /* anonymous */ {
 std::exception_ptr s_WindowProcException = null;
 HGLRC s_DummyGlContext;
 
-const char *s_ColVertGlsl[] = { {
-#include "col.vs_6_0.glsl.inl"
-} };
-
-const uint8_t s_ColVertSpv[] = {
+const uint8_t c_ColVertSpv[] = {
 #include "col.vs_6_0.spv.inl"
 };
 
-GLuint s_ColVertShader;
+const char *c_ColVertGlsl[] = { {
+#include "col.vs_6_0.glsl.inl"
+} };
 
-const char *s_ColFragGlsl[] = { {
-#include "col.ps_6_0.glsl.inl"
-	} };
-
-const uint8_t s_ColFragSpv[] = {
+const uint8_t c_ColFragSpv[] = {
 #include "col.ps_6_0.spv.inl"
 };
 
-GLuint s_ColFragShader;
+const char *c_ColFragGlsl[] = { {
+#include "col.ps_6_0.glsl.inl"
+} };
+
+GLuint s_ColProgram;
 
 void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *const *glsl, size_t glslLen)
 {
@@ -105,11 +103,18 @@ void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *co
 
 void init()
 {
-	// Create vertex shader
-	s_ColVertShader = glCreateShader(GL_VERTEX_SHADER);
-	loadShader(s_ColVertShader, s_ColVertSpv, sizeof(s_ColVertSpv), s_ColVertGlsl, sizeof(s_ColVertGlsl[0]));
-	s_ColFragShader = glCreateShader(GL_FRAGMENT_SHADER);
-	loadShader(s_ColFragShader, s_ColFragSpv, sizeof(s_ColFragSpv), s_ColFragGlsl, sizeof(s_ColFragGlsl[0]));
+	// Create vertex color program
+	GLuint colVertShader = glCreateShader(GL_VERTEX_SHADER);
+	loadShader(colVertShader, c_ColVertSpv, sizeof(c_ColVertSpv), c_ColVertGlsl, sizeof(c_ColVertGlsl[0]));
+	GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteShader, colVertShader); });
+	GLuint colFragShader = glCreateShader(GL_FRAGMENT_SHADER);
+	loadShader(colFragShader, c_ColFragSpv, sizeof(c_ColFragSpv), c_ColFragGlsl, sizeof(c_ColFragGlsl[0]));
+	GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteShader, colFragShader); });
+	s_ColProgram = glCreateProgram();
+	glAttachShader(s_ColProgram, colVertShader);
+	glAttachShader(s_ColProgram, colFragShader);
+	glLinkProgram(s_ColProgram);
+	GAME_THROW_IF_GL_ERROR();
 }
 
 void update()
@@ -135,8 +140,8 @@ void render()
 
 void release()
 {
-	GAME_SAFE_C_DELETE(glDeleteShader, s_ColFragShader);
-	GAME_SAFE_C_DELETE(glDeleteShader, s_ColVertShader);
+	GAME_SAFE_C_DELETE(glDeleteProgram, s_ColProgram);
+	
 }
 
 void wmCreate(HWND hwnd);
