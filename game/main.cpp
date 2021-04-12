@@ -96,22 +96,25 @@ void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *co
 void init()
 {
 	// Create vertex color program
-	GLuint colProgram;
+	GLuint colProgram = NULL;
+	GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteProgram, colProgram); });
 	{
-		GLuint colVertShader = glCreateShader(GL_VERTEX_SHADER);
-		GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteShader, colVertShader); });
-		GAME_LOAD_SHADER(colVertShader, col, vs_6_0);
+		GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
+		GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteShader, vertShader); });
+		GAME_LOAD_SHADER(vertShader, col, vs_6_0);
 
-		GLuint colFragShader = glCreateShader(GL_FRAGMENT_SHADER);
-		GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteShader, colFragShader); });
-		GAME_LOAD_SHADER(colFragShader, col, ps_6_0);
+		GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
+		GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteShader, fragShader); });
+		GAME_LOAD_SHADER(fragShader, col, ps_6_0);
 
-		colProgram = glCreateProgram();
-		GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteProgram, colProgram); });
-		glAttachShader(s_ColProgram, colVertShader);
-		glAttachShader(s_ColProgram, colFragShader);
-		glLinkProgram(colProgram);
+		GLuint program = glCreateProgram();
+		GAME_FINALLY([&]() -> void { GAME_SAFE_C_DELETE(glDeleteProgram, program); });
+		glAttachShader(program, vertShader);
+		glAttachShader(program, fragShader);
+		glLinkProgram(program);
 		GAME_THROW_IF_GL_ERROR();
+		colProgram = program;
+		program = NULL;
 	}
 
 	s_ColProgram = colProgram;
