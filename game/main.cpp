@@ -227,11 +227,11 @@ void render()
 	GAME_THROW_IF_GL_ERROR();
 
 	// Draw triangle
+	glEnable(GL_FRAMEBUFFER_SRGB); 
 	glUseProgram(s_ColProgram);
-	GAME_THROW_IF_GL_ERROR();
 	glBindVertexArray(s_TriVao);
-	GAME_THROW_IF_GL_ERROR();
 	glDrawArrays(GL_TRIANGLES, 0, 3);
+	glDisable(GL_FRAMEBUFFER_SRGB); 
 	GAME_THROW_IF_GL_ERROR();
 
 	// Swap

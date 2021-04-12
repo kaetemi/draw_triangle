@@ -30,6 +30,7 @@ For controls, better to use XInput directly.
 ## Draw a triangle in OpenGL
 
 Draw a triangle, and do it properly. We need to get sRGB and Linear color spaces correct from the go!
+https://learnopengl.com/Advanced-Lighting/Gamma-Correction
 
 ## Debug output
 
