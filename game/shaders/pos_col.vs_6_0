@@ -18,3 +18,5 @@ VertexShaderOutput main(VertexShaderInput input)
 	output.color = input.color;
 	return output;
 }
+
+/* end of file */
