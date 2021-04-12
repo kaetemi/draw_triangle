@@ -124,6 +124,14 @@ void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *co
 	checkCompileStatus(shader);
 }
 
+bool isShaderSpirV(GLuint shader)
+{
+	GLint res;
+	glGetShaderiv(shader, GL_SPIR_V_BINARY, &res);
+	GAME_THROW_IF_GL_ERROR();
+	return res;
+}
+
 #define GAME_LOAD_SHADER(shader, name, ext) \
 	loadShader((shader), \
 		shaders::name::ext::spv, sizeof(shaders::name::ext::spv), \
@@ -155,8 +163,12 @@ void init()
 		glAttachShader(program, vertShader);
 		glAttachShader(program, fragShader);
 		glLinkProgram(program);
-		glDetachShader(program, vertShader);
-		glDetachShader(program, fragShader);
+		// BUG: Memory access violation if the shaders are detached (and deleted) on AMD with SPIR-V
+		if (!isShaderSpirV(vertShader))
+			glDetachShader(program, vertShader);
+		// BUG: Memory access violation if the shaders are detached (and deleted) on AMD with SPIR-V
+		if (!isShaderSpirV(fragShader))
+			glDetachShader(program, fragShader);
 		GAME_THROW_IF_GL_ERROR();
 		checkLinkStatus(program);
 
