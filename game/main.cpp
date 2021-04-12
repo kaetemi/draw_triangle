@@ -73,6 +73,16 @@ const uint8_t s_PosVertSpv[] = {
 
 GLuint s_PosVertShader;
 
+const char *s_PosColVertGlsl[] = { {
+#include "pos_col.vert.inl"
+	} };
+
+const uint8_t s_PosColVertSpv[] = {
+#include "pos_col.vert.spv.inl"
+};
+
+GLuint s_PosColVertShader;
+
 void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *const *glsl, size_t glslLen)
 {
 	if (ArbSpirV && spv)
@@ -98,6 +108,9 @@ void init()
 	// Create vertex shader
 	s_PosVertShader = glCreateShader(GL_VERTEX_SHADER);
 	loadShader(s_PosVertShader, s_PosVertSpv, sizeof(s_PosVertSpv), s_PosVertGlsl, sizeof(s_PosVertGlsl[0]));
+
+	s_PosColVertShader = glCreateShader(GL_VERTEX_SHADER);
+	loadShader(s_PosColVertShader, s_PosColVertSpv, sizeof(s_PosColVertSpv), s_PosColVertGlsl, sizeof(s_PosColVertGlsl[0]));
 }
 
 void update()
@@ -123,6 +136,7 @@ void render()
 
 void release()
 {
+	GAME_SAFE_C_DELETE(glDeleteShader, s_PosColVertShader);
 	GAME_SAFE_C_DELETE(glDeleteShader, s_PosVertShader);
 }
 
