@@ -43,6 +43,7 @@ public:
 
 	GlException(const GLenum flag, const StringView file, const int line) noexcept;
 	inline GlException(const GLenum flag, const std::string_view file, const int line) noexcept : GlException(flag, StringView(file), line) { }
+	inline GlException(const GLenum flag) noexcept : GlException(flag, StringView(), -1) { }
 	virtual ~GlException() noexcept;
 
 	GlException(const GlException &other) noexcept;
@@ -50,8 +51,10 @@ public:
 
 	[[nodiscard]] virtual std::string_view what() const override;
 
-	inline std::string_view file() const { return m_File.sv(); };
-	inline int line() const { return m_Line; };
+	inline GLenum flag() const { return m_Flag; }
+
+	inline std::string_view file() const { return m_File.sv(); }
+	inline int line() const { return m_Line; }
 	
 private:
 	GLenum m_Flag;

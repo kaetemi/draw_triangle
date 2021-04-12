@@ -73,7 +73,7 @@ std::string_view getMessage(const std::string_view staticMessage, const GLenum f
 	{
 		memcpy(buf /* &buf[i] */, staticMessage.data(), staticMessage.size());
 		i += staticMessage.size();
-		if (!i || buf[i - 1] != '\n')
+		if ((!i || buf[i - 1] != '\n') && file.size())
 		{
 			buf[i] = '\n';
 			++i;
@@ -87,16 +87,22 @@ std::string_view getMessage(const std::string_view staticMessage, const GLenum f
 		i += 8;
 		memcpy(&buf[i], unknownPost.data(), unknownPost.size());
 		i += unknownPost.size();
-		buf[i] = '\n';
-		++i;
+		if (file.size())
+		{
+			buf[i] = '\n';
+			++i;
+		}
 	}
-	memcpy(&buf[i], fileTxt.data(), fileTxt.size());
-	i += fileTxt.size();
-	memcpy(&buf[i], file.data(), file.size());
-	i += file.size();
-	memcpy(&buf[i], lineTxt.data(), lineTxt.size());
-	i += lineTxt.size();
-	i += sprintf_s(&buf[i], maxLen - i, "%d", line);
+	if (file.size())
+	{
+		memcpy(&buf[i], fileTxt.data(), fileTxt.size());
+		i += fileTxt.size();
+		memcpy(&buf[i], file.data(), file.size());
+		i += file.size();
+		memcpy(&buf[i], lineTxt.data(), lineTxt.size());
+		i += lineTxt.size();
+		i += sprintf_s(&buf[i], maxLen - i, "%d", line);
+	}
 	buf[i] = '\0';
 	return std::string_view(buf, i);
 }

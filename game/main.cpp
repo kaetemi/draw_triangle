@@ -445,6 +445,32 @@ int main()
 						render();
 					}
 				}
+				catch (GlException &ex)
+				{
+					showMessageBox(ex.what(), "Game Exception"sv, MessageBoxStyle::Error);
+					GLenum lastFlag = ex.flag();
+					int guardCount = 0;
+					while (GLenum flag = glGetError())
+					{
+						if (flag != lastFlag)
+						{
+							GlException ex2(flag, ex.file(), ex.line());
+							showMessageBox(ex2.what(), "Game Exception"sv, MessageBoxStyle::Error);
+							lastFlag = ex2.flag();
+						}
+						else
+						{
+							++guardCount;
+							if (guardCount > 4096)
+							{
+								// Critical failure
+								// Message box not shown, glGetError not resetting
+								GAME_DEBUG_BREAK();
+								return EXIT_FAILURE;
+							}
+						}
+					}
+				}
 				catch (Exception &ex)
 				{
 					showMessageBox(ex.what(), "Game Exception"sv, MessageBoxStyle::Error);
@@ -459,6 +485,32 @@ int main()
 		// Done
 		GAME_DEBUG_ASSERT(!MainGlContext);
 		return EXIT_SUCCESS;
+	}
+	catch (GlException &ex)
+	{
+		showMessageBox(ex.what(), "Fatal Game Exception"sv, MessageBoxStyle::Error);
+		GLenum lastFlag = ex.flag();
+		int guardCount = 0;
+		while (GLenum flag = glGetError())
+		{
+			if (flag != lastFlag)
+			{
+				GlException ex2(flag, ex.file(), ex.line());
+				showMessageBox(ex2.what(), "Fatal Game Exception"sv, MessageBoxStyle::Error);
+				lastFlag = ex2.flag();
+			}
+			else
+			{
+				++guardCount;
+				if (guardCount > 4096)
+				{
+					// Critical failure
+					// Message box not shown, glGetError not resetting
+					GAME_DEBUG_BREAK();
+					return EXIT_FAILURE;
+				}
+			}
+		}
 	}
 	catch (Exception &ex)
 	{

@@ -39,11 +39,11 @@ UINT s_APC = GetACP();
 
 } /* anonymous namespace */
 
-void showMessageBox(std::string_view message, std::string_view title, MessageBoxStyle style)
+bool showMessageBox(std::string_view message, std::string_view title, MessageBoxStyle style)
 {
 	if (s_APC == CP_UTF8 && !(&message[0])[message.size()] && !(&title[0])[title.size()])
 	{
-		MessageBoxA(MainWindow, &message[0], &title[0], (UINT)style);
+		return MessageBoxA(MainWindow, &message[0], &title[0], (UINT)style | MB_TASKMODAL) != 0;
 	}
 	else
 	{
@@ -68,10 +68,10 @@ void showMessageBox(std::string_view message, std::string_view title, MessageBox
 			wtitle[wideLen] = 0;
 		}
 
-		MessageBoxW(MainWindow, 
+		return MessageBoxW(MainWindow, 
 			wmessage ? wmessage : L"Out of memory",
 			wtitle ? wtitle : L"Game",
-			(UINT)style);
+			(UINT)style | MB_TASKMODAL) != 0;
 	}
 }
 

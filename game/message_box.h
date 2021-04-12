@@ -43,7 +43,7 @@ enum class MessageBoxStyle
 	Question = MB_ICONQUESTION,
 };
 
-void showMessageBox(std::string_view message, std::string_view title, MessageBoxStyle style);
+bool showMessageBox(std::string_view message, std::string_view title, MessageBoxStyle style);
 
 } /* namespace game */
 
