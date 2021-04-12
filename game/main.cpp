@@ -468,16 +468,18 @@ int main()
 			GAME_FINALLY([&]() -> void { UnregisterClassW(L"PolyverseGame", ModuleHandle); });
 
 			// Create a window
-			RECT r;
-			SetRect(&r, 0, 0, 1280, 720);
-			AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
-			MainWindow = CreateWindowW(
-				L"PolyverseGame",
-				L"Game",
-				WS_OVERLAPPEDWINDOW,
-				CW_USEDEFAULT, CW_USEDEFAULT,
-				(r.right - r.left), (r.bottom - r.top),
-				0, NULL, ModuleHandle, 0);
+			{
+				RECT r;
+				SetRect(&r, 0, 0, 1280, 720);
+				AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
+				MainWindow = CreateWindowW(
+					L"PolyverseGame",
+					L"Game",
+					WS_OVERLAPPEDWINDOW,
+					CW_USEDEFAULT, CW_USEDEFAULT,
+					(r.right - r.left), (r.bottom - r.top),
+					0, NULL, ModuleHandle, 0);
+			}
 			RETHROW_WND_PROC_EXCEPTION();
 			GAME_THROW_LAST_ERROR_IF(!MainWindow);
 			GAME_DEBUG_ASSERT(MainGlContext);
