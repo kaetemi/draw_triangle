@@ -231,7 +231,7 @@ void render()
 	GAME_THROW_IF_GL_ERROR();
 	glBindVertexArray(s_TriVao);
 	GAME_THROW_IF_GL_ERROR();
-	glDrawArrays(GL_TRIANGLES, 0, 1);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 	GAME_THROW_IF_GL_ERROR();
 
 	// Swap
