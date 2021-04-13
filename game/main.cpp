@@ -262,6 +262,20 @@ void release()
 void wmCreate(HWND hwnd);
 void wmDestroy();
 
+void APIENTRY debugCallbackGl(
+	GLenum source, GLenum type, GLuint id,
+	GLenum severity, GLsizei length, const GLchar *message,
+	const void *userParam)
+{
+	GAME_DEBUG_OUTPUT_LF(message);
+	switch (severity)
+	{
+	case GL_DEBUG_SEVERITY_HIGH:
+	case GL_DEBUG_SEVERITY_MEDIUM:
+		GAME_DEBUG_BREAK();
+	}
+}
+
 #define RETHROW_WND_PROC_EXCEPTION() if (s_WindowProcException) \
 	{ \
 		std::exception_ptr ex = s_WindowProcException; \
@@ -463,6 +477,15 @@ void wmCreate(HWND hwnd)
 		"OpenGL {}, GLSL {}\nVendor: {}, Renderer: {}\n",
 		glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION),
 		glGetString(GL_VENDOR), glGetString(GL_RENDERER)));
+
+#ifdef GAME_DEBUG
+	glDebugMessageCallback(debugCallbackGl, 0);
+	GAME_THROW_IF_GL_ERROR();
+	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	GAME_THROW_IF_GL_ERROR();
+	glEnable(GL_DEBUG_OUTPUT);
+	GAME_THROW_IF_GL_ERROR();
+#endif
 
 	PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
 	if (!wglGetExtensionsStringARB)
