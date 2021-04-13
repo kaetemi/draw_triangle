@@ -126,6 +126,8 @@ void loadShader(GLuint shader, const uint8_t *spv, size_t spvLen, const char *co
 
 bool isShaderSpirV(GLuint shader)
 {
+	if (!ArbSpirV)
+		return false;
 	GLint res;
 	glGetShaderiv(shader, GL_SPIR_V_BINARY, &res);
 	GAME_THROW_IF_GL_ERROR();
