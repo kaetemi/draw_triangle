@@ -164,6 +164,8 @@ using namespace std::string_view_literals;
 #define GAME_THROW(ex) do { throw ex; } while (false)
 #endif
 
+#define GAME_OUTPUT_DEBUG_BUFFER (_ALLOCA_S_THRESHOLD / 4)
+
 namespace game {
 
 struct OutputDebugContainer
@@ -172,7 +174,7 @@ public:
 	typedef char value_type;
 
 private:
-	char m_Buffer[4096];
+	char m_Buffer[GAME_OUTPUT_DEBUG_BUFFER];
 	int m_Length = 0;
 
 	void flush()
