@@ -19,6 +19,6 @@ For sound, OpenAL "will do". :(
 
 For controls, better to use XInput directly.
 
-## Build
+## Event loop
 
-Detect the Vulkan SDK more properly, don't depend on the environment variable.
+Simply push the game update function into the loop, then run the event loop until flushed.

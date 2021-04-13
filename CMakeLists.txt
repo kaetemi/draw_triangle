@@ -75,6 +75,20 @@ SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 ########################################################################
 
+FIND_PACKAGE(Vulkan REQUIRED)
+
+IF(${CMAKE_HOST_SYSTEM_PROCESSOR} STREQUAL "AMD64")
+  SET(VULKAN_BIN_DIR "${Vulkan_GLSLC_EXECUTABLE}/../../Bin")
+ELSE()
+  SET(VULKAN_BIN_DIR "${Vulkan_GLSLC_EXECUTABLE}/../../Bin32")
+ENDIF()
+
+FIND_PROGRAM(GAME_GLSL_VALIDATOR NAMES glslangValidator HINTS "${VULKAN_BIN_DIR}")
+FIND_PROGRAM(GAME_SPIRV_CROSS NAMES spirv-cross HINTS "${VULKAN_BIN_DIR}")
+FIND_PROGRAM(GAME_DXC NAMES dxc HINTS "${VULKAN_BIN_DIR}")
+
+########################################################################
+
 ADD_SUBDIRECTORY(dependencies/gl3w)
 ADD_SUBDIRECTORY(dependencies/fmt)
 ADD_SUBDIRECTORY(game)
