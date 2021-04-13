@@ -91,7 +91,7 @@ using namespace std::string_view_literals;
 #include "gsl/util"
 
 // Include FMT
-#include <fmt/core.h>
+#include <fmt/format.h>
 
 // The usual
 #include <functional>
@@ -162,6 +162,58 @@ using namespace std::string_view_literals;
 #define GAME_DEBUG_OUTPUT(str) do { } while (false)
 #define GAME_DEBUG_OUTPUT_LF(str) do { } while (false)
 #define GAME_THROW(ex) do { throw ex; } while (false)
+#endif
+
+namespace game {
+
+struct OutputDebugContainer
+{
+public:
+	typedef char value_type;
+
+private:
+	char m_Buffer[4096];
+	int m_Length = 0;
+
+	void flush()
+	{
+		int len = m_Length;
+		if (m_Buffer[len - 1] & 0x80)
+		{
+			// Last character may be incomplete
+			--len;
+			while (m_Buffer[len] & 0x40)
+				--len;
+		}
+		GAME_DEBUG_OUTPUT(std::string_view(m_Buffer, len));
+		int remain = m_Length - len;
+		for (int i = 0; i < remain; ++i)
+			m_Buffer[i] = m_Buffer[len + i];
+		m_Length = remain;
+	}
+
+public:
+	GAME_FORCE_INLINE void push_back(char c)
+	{
+		m_Buffer[m_Length] = c;
+		++m_Length;
+		if (m_Length >= sizeof(m_Buffer))
+			flush();
+	}
+
+	GAME_FORCE_INLINE ~OutputDebugContainer()
+	{
+		if (m_Length)
+			GAME_DEBUG_OUTPUT(std::string_view(m_Buffer, m_Length));
+	}
+};
+
+}
+
+#ifdef GAME_DEBUG
+#define GAME_DEBUG_FORMAT(format, ...) ([&]() -> void { fmt::format_to(std::back_insert_iterator(OutputDebugContainer()), format, __VA_ARGS__); })()
+#else
+#define GAME_DEBUG_FORMAT(format, ...) do { } while (false)
 #endif
 
 #define GAME_SAFE_C_DELETE(del, ptr) if (ptr) \

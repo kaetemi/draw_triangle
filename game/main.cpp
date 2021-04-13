@@ -473,10 +473,9 @@ void wmCreate(HWND hwnd)
 	MainGlContext = hglrc;
 	GAME_THROW_IF_GL_ERROR(); // Should not happen, but flush it anyway!
 
-	GAME_DEBUG_OUTPUT(fmt::format(
-		"OpenGL {}, GLSL {}\nVendor: {}, Renderer: {}\n",
+	GAME_DEBUG_FORMAT("OpenGL {}, GLSL {}\nVendor: {}, Renderer: {}\n",
 		glGetString(GL_VERSION), glGetString(GL_SHADING_LANGUAGE_VERSION),
-		glGetString(GL_VENDOR), glGetString(GL_RENDERER)));
+		glGetString(GL_VENDOR), glGetString(GL_RENDERER));
 
 #ifdef GAME_DEBUG
 	glDebugMessageCallback(debugCallbackGl, 0);
@@ -493,9 +492,8 @@ void wmCreate(HWND hwnd)
 
 	const char *wglExtensions = wglGetExtensionsStringARB(hdc);
 	GAME_THROW_IF_GL_ERROR();
-	GAME_DEBUG_OUTPUT(fmt::format(
-		"WGL extensions: {}\nGL extensions:",
-		wglExtensions));
+	GAME_DEBUG_FORMAT("WGL extensions: {}\nGL extensions:",
+		wglExtensions);
 	GLint numExt;
 	glGetIntegerv(GL_NUM_EXTENSIONS, &numExt);
 	GAME_THROW_IF_GL_ERROR();
@@ -503,7 +501,7 @@ void wmCreate(HWND hwnd)
 	{
 		const char *ext = (const char *)glGetStringi(GL_EXTENSIONS, i);
 		GAME_THROW_IF_GL_ERROR();
-		GAME_DEBUG_OUTPUT(fmt::format(" {}", ext));
+		GAME_DEBUG_FORMAT(" {}", ext);
 		if (!strcmp(ext, "GL_ARB_gl_spirv"))
 			ArbSpirV = true;
 		else if (!strcmp(ext, "GL_ARB_spirv_extensions"))
@@ -511,8 +509,8 @@ void wmCreate(HWND hwnd)
 	}
 	GAME_DEBUG_OUTPUT("\n");
 
-	GAME_DEBUG_OUTPUT(fmt::format("ARB_gl_spirv: {}\n", ArbSpirV)); // GL 4.6
-	GAME_DEBUG_OUTPUT(fmt::format("ARB_spirv_extensions: {}\n", ArbSpirVExt)); // GL 4.6
+	GAME_DEBUG_FORMAT("ARB_gl_spirv: {}\n", ArbSpirV); // GL 4.6
+	GAME_DEBUG_FORMAT("ARB_spirv_extensions: {}\n", ArbSpirVExt); // GL 4.6
 
 	if (ArbSpirV)
 	{
