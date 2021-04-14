@@ -58,10 +58,24 @@ char **ArgV;
 bool ArbSpirV;
 bool ArbSpirVExt;
 
+bool DisplayFullscreen;
+int DisplayWidth;
+int DisplayHeight;
+
 namespace /* anonymous */ {
 
 std::exception_ptr s_WindowProcException;
 HGLRC s_DummyGlContext;
+MSG s_Msg;
+bool s_LastException; // Flagged if there was any exception during the last loop, unflagged after a successful frame
+
+bool s_ReqDisplayChange;
+bool s_ReqDisplayFullscreen;
+int s_ReqDisplayWidth;
+int s_ReqDisplayHeight;
+DEVMODEW s_LastDevMode;
+int s_LastWindowX;
+int s_LastWindowY;
 
 void checkCompileStatus(GLuint shader)
 {
@@ -536,6 +550,69 @@ void wmDestroy()
 	PostQuitMessage(0); // Quit game
 }
 
+void applyDisplay()
+{
+	s_ReqDisplayChange = false;
+	if (!s_ReqDisplayWidth || !s_ReqDisplayHeight)
+	{
+		s_ReqDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
+		s_ReqDisplayHeight = GetSystemMetrics(SM_CYSCREEN);
+	}
+	if (s_ReqDisplayFullscreen != DisplayFullscreen)
+	{
+		if (s_ReqDisplayFullscreen)
+		{
+			if (!EnumDisplaySettingsW(NULL, ENUM_CURRENT_SETTINGS, &s_LastDevMode))
+				GAME_THROW(Exception("Failed to store current display settings"));
+
+			RECT r;
+			GAME_THROW_LAST_ERROR_IF(!GetWindowRect(MainWindow, &r));
+			s_LastWindowX = r.left;
+			s_LastWindowY = r.right;
+
+			DEVMODEW devMode = { 0 };
+			devMode.dmSize = sizeof(devMode);
+			devMode.dmBitsPerPel = 32;
+			devMode.dmPelsWidth = s_ReqDisplayWidth;
+			devMode.dmPelsHeight = s_ReqDisplayHeight;
+			devMode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+			
+			LONG changeRes = ChangeDisplaySettingsW(&devMode, CDS_FULLSCREEN);
+			if (changeRes != DISP_CHANGE_SUCCESSFUL)
+				GAME_THROW(Exception(fmt::format("Failed to apply fullscreen display resolution\nReturn code: {}", changeRes)));
+		}
+		else
+		{
+			LONG changeRes = ChangeDisplaySettingsW(&s_LastDevMode, CDS_FULLSCREEN);
+			if (changeRes != DISP_CHANGE_SUCCESSFUL)
+				GAME_THROW(Exception(fmt::format("Failed to restore display settings\nReturn code: {}", changeRes)));
+		}
+		DisplayFullscreen = s_ReqDisplayFullscreen;
+	}
+	RECT r;
+	if (!SetRect(&r, 0, 0, s_ReqDisplayWidth, s_ReqDisplayHeight))
+		GAME_THROW(Exception("Failed to set rect"));
+	if (DisplayFullscreen)
+	{
+		LONG style = GetWindowLongW(MainWindow, GWL_STYLE);
+		GAME_THROW_LAST_ERROR_IF(!style);
+		style &= ~WS_OVERLAPPEDWINDOW;
+		style |= WS_POPUP;
+		GAME_THROW_LAST_ERROR_IF(!SetWindowLongW(MainWindow, GWL_STYLE, style));
+		GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, 0, 0, (r.right - r.left), (r.bottom - r.top), 0));
+	}
+	else
+	{
+		GAME_THROW_LAST_ERROR_IF(!AdjustWindowRectEx(&r, WS_OVERLAPPEDWINDOW, FALSE, WS_EX_APPWINDOW));
+		LONG style = GetWindowLongW(MainWindow, GWL_STYLE);
+		GAME_THROW_LAST_ERROR_IF(!style);
+		style &= ~WS_POPUP;
+		style |= WS_OVERLAPPEDWINDOW;
+		GAME_THROW_LAST_ERROR_IF(!SetWindowLongW(MainWindow, GWL_STYLE, style));
+		GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, s_LastWindowX, s_LastWindowY, (r.right - r.left), (r.bottom - r.top), 0));
+	}
+}
+
 void setCmdLine(PWSTR lpCmdLine)
 { 
 	// Convert command line to UTF-8 argv
@@ -603,8 +680,9 @@ int main()
 			// Create a window
 			{
 				RECT r;
-				SetRect(&r, 0, 0, 1280, 720);
-				AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE);
+				if (!SetRect(&r, 0, 0, 1280, 720))
+					GAME_THROW(Exception("Failed to set rect"));
+				GAME_THROW_LAST_ERROR_IF(!AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE));
 				MainWindow = CreateWindowW(
 					L"PolyverseGame",
 					L"Game",
@@ -620,32 +698,41 @@ int main()
 			GAME_FINALLY([&]() -> void { if (MainWindow) { DestroyWindow(MainWindow); }});
 
 			// Show the main window
+			SetWindowLongW(MainWindow, GWL_EXSTYLE, WS_EX_APPWINDOW);
+			applyDisplay();
 			ShowWindow(MainWindow, SW_SHOWNORMAL);
+			// ShowCursor(FALSE);
 
 			init();
 			GAME_FINALLY([&]() -> void { release(); });
 
 			// Message loop
-			MSG msg = { 0 };
 			do
 			{
 				try
 				{
-					if (PeekMessageW(&msg, NULL, 0U, 0U, PM_REMOVE))
+					if (PeekMessageW(&s_Msg, NULL, 0U, 0U, PM_REMOVE))
 					{
 						// Translate and dispatch the message
-						TranslateMessage(&msg);
-						DispatchMessage(&msg);
+						TranslateMessage(&s_Msg);
+						DispatchMessage(&s_Msg);
 						RETHROW_WND_PROC_EXCEPTION();
+					}
+					else if (!s_LastException && s_ReqDisplayChange)
+					{
+						// Display change requested
+						applyDisplay();
 					}
 					else
 					{
 						update();
 						render();
+						s_LastException = false;
 					}
 				}
 				catch (GlException &ex)
 				{
+					s_LastException = true;
 					showMessageBox(ex.what(), "Game Exception"sv, MessageBoxStyle::Error);
 					GLenum lastFlag = ex.flag();
 					int guardCount = 0;
@@ -672,13 +759,15 @@ int main()
 				}
 				catch (Exception &ex)
 				{
+					s_LastException = true;
 					showMessageBox(ex.what(), "Game Exception"sv, MessageBoxStyle::Error);
 				}
 				catch (...)
 				{
+					s_LastException = true;
 					showMessageBox("A system exception occured."sv, "Game Exception"sv, MessageBoxStyle::Error);
 				}
-			} while (msg.message != WM_QUIT);
+			} while (s_Msg.message != WM_QUIT);
 		}
 
 		// Done
