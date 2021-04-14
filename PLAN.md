@@ -21,7 +21,9 @@ For controls, better to use XInput directly.
 
 ## Event loop
 
-Simply push the game update function into the loop, then run the event loop until flushed.
+Event loop should post messages into the windows message loop.
+
+Game loop itself is still periodic, so it's easier to call it as-is.
 
 ## Display
 
@@ -39,3 +41,6 @@ Fullscreen on multiple displays.
 Restore windowed after fullscreen with previous size.
 
 Keep rendering while resizing.
+
+Borderless https://www.opengl.org/pipeline/article/vol003_7/
+

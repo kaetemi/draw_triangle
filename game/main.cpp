@@ -76,6 +76,8 @@ int s_ReqDisplayHeight;
 DEVMODEW s_LastDevMode;
 int s_LastWindowX;
 int s_LastWindowY;
+int s_LastWindowWidth;
+int s_LastWindowHeight;
 
 bool s_GameInit;
 bool s_InternalLoop;
@@ -334,6 +336,11 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 			RECT *rect = wParam ? &((NCCALCSIZE_PARAMS *)lParam)->rgrc[0] : (RECT *)lParam;
 			DisplayWidth = rect->right - rect->left;
 			DisplayHeight = rect->bottom - rect->top;
+			if (!DisplayFullscreen)
+			{
+				s_LastWindowWidth = DisplayWidth;
+				s_LastWindowHeight = DisplayHeight;
+			}
 			GAME_DEBUG_FORMAT("Resolution: {}x{}\n", DisplayWidth, DisplayHeight);
 			return res;
 		}
@@ -342,6 +349,29 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 			// Keep rendering the game while resizing the window
 			if (s_GameInit && !s_InGameLoop && !internalLoop)
 				loop();
+			break;
+		}
+		case WM_KEYUP:
+		{
+			if (!s_InGameLoop)
+			{
+				s_InGameLoop = true; // Consider input event handling as part of the game loop
+				switch (wParam)
+				{
+				case 'F':
+					s_ReqDisplayFullscreen = !s_ReqDisplayFullscreen;
+					s_ReqDisplayWidth = 0;
+					s_ReqDisplayHeight = 0;
+					s_ReqDisplayChange = true;
+					break;
+				case 'H':
+					showMessageBox("Keys:\n"
+						"F: Switch between fullscreen and windowed mode"
+						""sv, "Game Help"sv, MessageBoxStyle::Message);
+					break;
+				}
+				s_InGameLoop = false;
+			}
 			break;
 		}
 		case WM_DESTROY:
@@ -590,9 +620,16 @@ void applyDisplay()
 		}
 		else
 		{
-			s_ReqDisplayWidth = DisplayWidth;
-			s_ReqDisplayHeight = DisplayHeight;
+			s_ReqDisplayWidth = s_LastWindowWidth;
+			s_ReqDisplayHeight = s_LastWindowHeight;
 		}
+	}
+	if (!DisplayFullscreen)
+	{
+		RECT r;
+		GAME_THROW_LAST_ERROR_IF(!GetWindowRect(MainWindow, &r));
+		s_LastWindowX = r.left;
+		s_LastWindowY = r.top;
 	}
 	if (s_ReqDisplayFullscreen != DisplayFullscreen)
 	{
@@ -600,11 +637,6 @@ void applyDisplay()
 		{
 			if (!EnumDisplaySettingsW(NULL, ENUM_CURRENT_SETTINGS, &s_LastDevMode))
 				GAME_THROW(Exception("Failed to store current display settings"));
-
-			RECT r;
-			GAME_THROW_LAST_ERROR_IF(!GetWindowRect(MainWindow, &r));
-			s_LastWindowX = r.left;
-			s_LastWindowY = r.right;
 
 			DEVMODEW devMode = { 0 };
 			devMode.dmSize = sizeof(devMode);
@@ -625,9 +657,6 @@ void applyDisplay()
 		}
 		DisplayFullscreen = s_ReqDisplayFullscreen;
 	}
-	RECT r;
-	if (!SetRect(&r, 0, 0, s_ReqDisplayWidth, s_ReqDisplayHeight))
-		GAME_THROW(Exception("Failed to set rect"));
 	if (DisplayFullscreen)
 	{
 		LONG style = GetWindowLongW(MainWindow, GWL_STYLE);
@@ -635,13 +664,18 @@ void applyDisplay()
 		style &= ~WS_OVERLAPPEDWINDOW;
 		style |= WS_POPUP;
 		GAME_THROW_LAST_ERROR_IF(!SetWindowLongW(MainWindow, GWL_STYLE, style));
-		GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, 0, 0, (r.right - r.left), (r.bottom - r.top), 0));
+		GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, 0, 0, s_ReqDisplayWidth, s_ReqDisplayHeight, 0));
 	}
 	else
 	{
+		RECT r;
+		if (!SetRect(&r, 0, 0, s_ReqDisplayWidth, s_ReqDisplayHeight))
+			GAME_THROW(Exception("Failed to set rect"));
 		GAME_THROW_LAST_ERROR_IF(!AdjustWindowRectEx(&r, WS_OVERLAPPEDWINDOW, FALSE, WS_EX_APPWINDOW));
 		LONG style = GetWindowLongW(MainWindow, GWL_STYLE);
 		GAME_THROW_LAST_ERROR_IF(!style);
+		if (style & WS_POPUP)
+			GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, s_LastWindowX, s_LastWindowY, s_ReqDisplayWidth, s_ReqDisplayHeight, 0));
 		style &= ~WS_POPUP;
 		style |= WS_OVERLAPPEDWINDOW;
 		GAME_THROW_LAST_ERROR_IF(!SetWindowLongW(MainWindow, GWL_STYLE, style));
