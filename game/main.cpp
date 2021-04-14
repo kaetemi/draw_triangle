@@ -77,6 +77,10 @@ DEVMODEW s_LastDevMode;
 int s_LastWindowX;
 int s_LastWindowY;
 
+bool s_GameInit;
+bool s_InternalLoop;
+bool s_InGameLoop;
+
 void checkCompileStatus(GLuint shader)
 {
 	GLint status;
@@ -237,6 +241,7 @@ void init()
 	triBuffers[1] = NULL;
 	s_TriVao = triVao;
 	triVao = NULL;
+	s_GameInit = true;
 }
 
 void update()
@@ -270,6 +275,7 @@ void render()
 
 void release()
 {
+	s_GameInit = false;
 	GAME_SAFE_GL_DELETE_ALL(glDeleteBuffers, s_TriBuffers);
 	GAME_SAFE_GL_DELETE_ONE(glDeleteVertexArrays, s_TriVao);
 	GAME_SAFE_C_DELETE(glDeleteProgram, s_ColProgram);
@@ -277,6 +283,7 @@ void release()
 
 void wmCreate(HWND hwnd);
 void wmDestroy();
+void loop();
 
 void APIENTRY debugCallbackGl(
 	GLenum source, GLenum type, GLuint id,
@@ -301,9 +308,12 @@ void APIENTRY debugCallbackGl(
 
 LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, _In_ LPARAM lParam)
 {
+	bool internalLoop = s_InternalLoop;
+	s_InternalLoop = false;
 	try
 	{
-		// GAME_DEBUG_ASSERT(MainWindow == hwnd); // Only one window, for now
+		GAME_DEBUG_ASSERT(!hwnd || !MainWindow || MainWindow == hwnd); // Only one window, for now
+		// GAME_DEBUG_FORMAT("Message: {}\n", uMsg);
 		switch(uMsg)
 		{
 		case WM_CREATE:
@@ -326,6 +336,13 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 			DisplayHeight = rect->bottom - rect->top;
 			GAME_DEBUG_FORMAT("Resolution: {}x{}\n", DisplayWidth, DisplayHeight);
 			return res;
+		}
+		case WM_PAINT:
+		{
+			// Keep rendering the game while resizing the window
+			if (s_GameInit && !s_InGameLoop && !internalLoop)
+				loop();
+			break;
 		}
 		case WM_DESTROY:
 		{
@@ -412,7 +429,7 @@ LRESULT CALLBACK dummyWindowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wPa
 void registerClass(wchar_t *className, WNDPROC wndProc)
 {
 	WNDCLASSW wndClass;
-	wndClass.style = CS_DBLCLKS | CS_OWNDC;
+	wndClass.style = CS_DBLCLKS | CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
 	wndClass.lpfnWndProc = wndProc;
 	wndClass.cbClsExtra = 0;
 	wndClass.cbWndExtra = 0;
@@ -666,6 +683,14 @@ void setCmdLine(PWSTR lpCmdLine)
 	}
 }
 
+void loop()
+{
+	s_InGameLoop = true;
+	update();
+	render();
+	s_InGameLoop = false; // Not called in case of exception inside loop, on purpose
+}
+
 int main()
 {
 	try
@@ -733,19 +758,19 @@ int main()
 					if (PeekMessageW(&s_Msg, NULL, 0U, 0U, PM_REMOVE))
 					{
 						// Translate and dispatch the message
+						s_InternalLoop = true;
 						TranslateMessage(&s_Msg);
 						DispatchMessage(&s_Msg);
 						RETHROW_WND_PROC_EXCEPTION();
 					}
 					else if (!s_LastException && s_ReqDisplayChange)
 					{
-						// Display change requested
+						// Display change requested, only apply inbetween complete frames
 						applyDisplay();
 					}
 					else
 					{
-						update();
-						render();
+						loop();
 						s_LastException = false;
 					}
 				}
