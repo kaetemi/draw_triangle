@@ -2,7 +2,7 @@
 FILE(GLOB SRCS *.cpp)
 FILE(GLOB HDRS *.h)
 FILE(GLOB INLS *.inl)
-FILE(GLOB RSRC *.rc)
+FILE(GLOB RSRC *.rc *.manifest)
 
 FILE(GLOB_RECURSE GSRC
   "shaders/*"
