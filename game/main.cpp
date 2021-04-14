@@ -776,7 +776,7 @@ int main()
 			GAME_FINALLY([&]() -> void { if (MainWindow) { DestroyWindow(MainWindow); }});
 
 			// Show the main window
-			SetWindowLongW(MainWindow, GWL_EXSTYLE, WS_EX_APPWINDOW);
+			GAME_THROW_LAST_ERROR_IF(!SetWindowLongW(MainWindow, GWL_EXSTYLE, WS_EX_APPWINDOW));
 			applyDisplay();
 			ShowWindow(MainWindow, SW_SHOWNORMAL);
 			// ShowCursor(FALSE);

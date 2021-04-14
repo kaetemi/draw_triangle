@@ -31,8 +31,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace game {
 
-extern HWND MainWindow;
-
 namespace /* anonymous */ {
 
 UINT s_APC = GetACP();
@@ -41,9 +39,16 @@ UINT s_APC = GetACP();
 
 bool showMessageBox(std::string_view message, std::string_view title, MessageBoxStyle style)
 {
+	HWND window = GetActiveWindow();
+	bool fullscreen = window && (GetWindowLongW(window, GWL_STYLE) & WS_POPUP);
+	bool minimized = fullscreen && ShowWindow(window, SW_MINIMIZE);
+	GAME_FINALLY([&]() -> void {
+		if (minimized)
+			ShowWindow(window, SW_RESTORE);
+	});
 	if (s_APC == CP_UTF8 && !(&message[0])[message.size()] && !(&title[0])[title.size()])
 	{
-		return MessageBoxA(MainWindow, &message[0], &title[0], (UINT)style | MB_TASKMODAL) != 0;
+		return MessageBoxA(window, &message[0], &title[0], (UINT)style | ((fullscreen || !window) ? MB_SYSTEMMODAL : MB_TASKMODAL)) != 0;
 	}
 	else
 	{
@@ -68,10 +73,10 @@ bool showMessageBox(std::string_view message, std::string_view title, MessageBox
 			wtitle[wideLen] = 0;
 		}
 
-		return MessageBoxW(MainWindow, 
+		return MessageBoxW(window, 
 			wmessage ? wmessage : L"Out of memory",
 			wtitle ? wtitle : L"Game",
-			(UINT)style | MB_TASKMODAL) != 0;
+			(UINT)style | ((fullscreen || !window) ? MB_SYSTEMMODAL : MB_TASKMODAL)) != 0;
 	}
 }
 
