@@ -248,6 +248,8 @@ void render()
 {
 	// Set current context
 	GAME_THROW_LAST_ERROR_IF(!wglMakeCurrent(MainDeviceContext, MainGlContext));
+	glViewport(0, 0, DisplayWidth, DisplayHeight);
+	glScissor(0, 0, DisplayWidth, DisplayHeight);
 
 	// Clear background
 	static const GLfloat bg[4] = { 0.0f, 0.125f, 0.25f, 1.0f };
@@ -315,6 +317,15 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 			// alternatively, implement some warning before closing
 			// return 0;
 			break;
+		}
+		case WM_NCCALCSIZE:
+		{
+			LRESULT res = DefWindowProcW(hwnd, uMsg, wParam, lParam);
+			RECT *rect = wParam ? &((NCCALCSIZE_PARAMS *)lParam)->rgrc[0] : (RECT *)lParam;
+			DisplayWidth = rect->right - rect->left;
+			DisplayHeight = rect->bottom - rect->top;
+			GAME_DEBUG_FORMAT("Resolution: {}x{}\n", DisplayWidth, DisplayHeight);
+			return res;
 		}
 		case WM_DESTROY:
 		{
@@ -555,8 +566,16 @@ void applyDisplay()
 	s_ReqDisplayChange = false;
 	if (!s_ReqDisplayWidth || !s_ReqDisplayHeight)
 	{
-		s_ReqDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
-		s_ReqDisplayHeight = GetSystemMetrics(SM_CYSCREEN);
+		if (s_ReqDisplayFullscreen)
+		{
+			s_ReqDisplayWidth = GetSystemMetrics(SM_CXSCREEN);
+			s_ReqDisplayHeight = GetSystemMetrics(SM_CYSCREEN);
+		}
+		else
+		{
+			s_ReqDisplayWidth = DisplayWidth;
+			s_ReqDisplayHeight = DisplayHeight;
+		}
 	}
 	if (s_ReqDisplayFullscreen != DisplayFullscreen)
 	{
@@ -680,7 +699,7 @@ int main()
 			// Create a window
 			{
 				RECT r;
-				if (!SetRect(&r, 0, 0, 1280, 720))
+				if (!SetRect(&r, 0, 0, 480, 272))
 					GAME_THROW(Exception("Failed to set rect"));
 				GAME_THROW_LAST_ERROR_IF(!AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, FALSE));
 				MainWindow = CreateWindowW(

@@ -33,3 +33,9 @@ https://www.gamasutra.com/blogs/MasonRemaley/20210222/377715/Fullscreen_Exclusiv
 https://devblogs.microsoft.com/directx/demystifying-full-screen-optimizations/
 
 WS_POPUP, DPI Awareness, and hide cursor, to go fullscreen?
+
+Fullscreen on multiple displays.
+
+Restore windowed after fullscreen with previous size.
+
+Keep rendering while resizing.
