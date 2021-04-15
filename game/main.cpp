@@ -59,6 +59,7 @@ bool ArbSpirV;
 bool ArbSpirVExt;
 
 bool DisplayFullscreen;
+bool DisplayBorderless;
 int DisplayWidth;
 int DisplayHeight;
 
@@ -71,6 +72,7 @@ bool s_LastException; // Flagged if there was any exception during the last loop
 
 bool s_ReqDisplayChange;
 bool s_ReqDisplayFullscreen;
+bool s_ReqDisplayBorderless;
 int s_ReqDisplayWidth;
 int s_ReqDisplayHeight;
 DEVMODEW s_LastDevMode;
@@ -346,6 +348,8 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 					s_LastWindowHeight = DisplayHeight;
 				}
 			}
+			if (DisplayBorderless)
+				rect->right += 32;
 			GAME_DEBUG_FORMAT("Resolution: {}x{}\n", DisplayWidth, DisplayHeight);
 			return res;
 		}
@@ -369,9 +373,16 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 					s_ReqDisplayHeight = 0;
 					s_ReqDisplayChange = true;
 					break;
+				case 'B':
+					s_ReqDisplayBorderless = !s_ReqDisplayBorderless;
+					s_ReqDisplayWidth = 0;
+					s_ReqDisplayHeight = 0;
+					s_ReqDisplayChange = true;
+					break;
 				case 'H':
-					showMessageBox("Keys:\n"
-						"F: Switch between fullscreen and windowed mode"
+					showMessageBox("Keys:"
+						"\n- F: Switch between fullscreen and windowed mode"
+						"\n- B: Toggle borderless fullscreen"
 						""sv, "Game Help"sv, MessageBoxStyle::Message);
 					break;
 				}
@@ -677,10 +688,12 @@ void applyDisplay()
 		style |= WS_POPUP;
 		GAME_THROW_LAST_ERROR_IF(!SetWindowLongW(MainWindow, GWL_STYLE, style));
 		GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, 0, 0, s_ReqDisplayWidth, s_ReqDisplayHeight, SWP_FRAMECHANGED));
+		DisplayBorderless = s_ReqDisplayBorderless;
 	}
 	else
 	{
 		RECT r;
+		DisplayBorderless = false; // Ignored value, set false for simplicity
 		if (!SetRect(&r, 0, 0, s_ReqDisplayWidth, s_ReqDisplayHeight))
 			GAME_THROW(Exception("Failed to set rect"));
 		GAME_THROW_LAST_ERROR_IF(!AdjustWindowRectEx(&r, WS_OVERLAPPEDWINDOW, FALSE, WS_EX_APPWINDOW));
