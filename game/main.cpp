@@ -664,7 +664,7 @@ void applyDisplay()
 		style &= ~WS_OVERLAPPEDWINDOW;
 		style |= WS_POPUP;
 		GAME_THROW_LAST_ERROR_IF(!SetWindowLongW(MainWindow, GWL_STYLE, style));
-		GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, 0, 0, s_ReqDisplayWidth, s_ReqDisplayHeight, 0));
+		GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, 0, 0, s_ReqDisplayWidth, s_ReqDisplayHeight, SWP_FRAMECHANGED));
 	}
 	else
 	{
@@ -679,7 +679,7 @@ void applyDisplay()
 		style &= ~WS_POPUP;
 		style |= WS_OVERLAPPEDWINDOW;
 		GAME_THROW_LAST_ERROR_IF(!SetWindowLongW(MainWindow, GWL_STYLE, style));
-		GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, s_LastWindowX, s_LastWindowY, (r.right - r.left), (r.bottom - r.top), 0));
+		GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, s_LastWindowX, s_LastWindowY, (r.right - r.left), (r.bottom - r.top), SWP_FRAMECHANGED));
 	}
 }
 
