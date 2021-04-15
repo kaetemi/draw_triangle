@@ -51,6 +51,10 @@ EXT_swap_control_tear or WGL_EXT_swap_control
 
 https://www.khronos.org/opengl/wiki/Swap_Interval
 
+Check WGL_EXT_swap_control WGL_EXT_swap_control_tear in BOTH WGL and GL extensions.
+
+Call wglSwapIntervalEXT if swap control available, -1 for adaptive vsync if swap_control_tear is available, 1 for regular vsync otherwise.
+
 ## Refactor
 
 Move rendering into WM_PAINT, use callback.
