@@ -334,12 +334,17 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 		{
 			LRESULT res = DefWindowProcW(hwnd, uMsg, wParam, lParam);
 			RECT *rect = wParam ? &((NCCALCSIZE_PARAMS *)lParam)->rgrc[0] : (RECT *)lParam;
-			DisplayWidth = rect->right - rect->left;
-			DisplayHeight = rect->bottom - rect->top;
-			if (!DisplayFullscreen)
+			int width = rect->right - rect->left;
+			int height = rect->bottom - rect->top;
+			if (width && height)
 			{
-				s_LastWindowWidth = DisplayWidth;
-				s_LastWindowHeight = DisplayHeight;
+				DisplayWidth = rect->right - rect->left;
+				DisplayHeight = rect->bottom - rect->top;
+				if (!DisplayFullscreen)
+				{
+					s_LastWindowWidth = DisplayWidth;
+					s_LastWindowHeight = DisplayHeight;
+				}
 			}
 			GAME_DEBUG_FORMAT("Resolution: {}x{}\n", DisplayWidth, DisplayHeight);
 			return res;

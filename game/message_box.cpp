@@ -40,7 +40,11 @@ UINT s_APC = GetACP();
 bool showMessageBox(std::string_view message, std::string_view title, MessageBoxStyle style)
 {
 	HWND window = GetActiveWindow();
-	bool fullscreen = window && (GetWindowLongW(window, GWL_STYLE) & WS_POPUP);
+	RECT clientRect;
+	GetClientRect(window, &clientRect);
+	RECT rect;
+	GetWindowRect(window, &rect);
+	bool fullscreen = window && (clientRect.bottom == rect.bottom);
 	bool minimized = fullscreen && ShowWindow(window, SW_MINIMIZE);
 	GAME_FINALLY([&]() -> void {
 		if (minimized)
