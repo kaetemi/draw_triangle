@@ -50,3 +50,21 @@ To get Borderless... Simply make the window 1 pixel higher, and reduce the clien
 EXT_swap_control_tear or WGL_EXT_swap_control
 
 https://www.khronos.org/opengl/wiki/Swap_Interval
+
+## Refactor
+
+Move rendering into WM_PAINT, use callback.
+
+Handle exceptions directly inside the window message procedure.
+
+Need a System and a Window class.
+
+Add callback for what needs to be done on exceptions, part of System.
+
+Main message loop runs on System, not as part of the window. All windows run in the main thread.
+
+Window procedure is part of the Window, though.
+
+Try to pop up two independent GL windows.
+
+Try to share GL resources between GL contexts.
