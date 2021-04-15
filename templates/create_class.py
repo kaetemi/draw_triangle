@@ -45,13 +45,13 @@ print "To use the defaults, simply hit ENTER, else type in the new value."
 print ""
 
 def askVar(name, default):
-	sys.stdout.write(name + " (" + default + "): ")
-	line = sys.stdin.readline()
-	linestrip = line.strip()
-	if linestrip == "":
-		return default
-	else:
-		return linestrip
+  sys.stdout.write(name + " (" + default + "): ")
+  line = sys.stdin.readline()
+  linestrip = line.strip()
+  if linestrip == "":
+    return default
+  else:
+    return linestrip
 
 file = askVar("File", "your_class_name").replace(" ", "_")
 classname = askVar("Class", "YourClassName")
@@ -69,51 +69,51 @@ print ""
 
 license = [ ]
 with open('license.txt') as f:
-	license = [i.rstrip('\n') for i in f.readlines()]
+  license = [i.rstrip('\n') for i in f.readlines()]
 
 header = [ ]
 with open('class.h') as f:
-	header = [i.rstrip('\n') for i in f.readlines()]
+  header = [i.rstrip('\n') for i in f.readlines()]
 
 source = [ ]
 with open('class.cpp') as f:
-	source = [i.rstrip('\n') for i in f.readlines()]
+  source = [i.rstrip('\n') for i in f.readlines()]
 
 def buildLine(line):
-	newline = line.replace("YEAR", year)
-	newline = newline.replace("DATE", date)
-	newline = newline.replace("Author NAME", author)
-	newline = newline.replace("Username", username)
-	newline = newline.replace("mail@example.com", email)
-	newline = newline.replace("ClassName", classname)
-	newline = newline.replace("className", classname[0].lower() + classname[1:])
-	newline = newline.replace("class_name", file)
-	newline = newline.replace("NMSP_CLASSNAME_H", hdefine)
-	newline = newline.replace("NMSP", namespace.upper())
-	newline = newline.replace("nmsp", namespace.lower())
-	return newline
+  newline = line.replace("YEAR", year)
+  newline = newline.replace("DATE", date)
+  newline = newline.replace("Author NAME", author)
+  newline = newline.replace("Username", username)
+  newline = newline.replace("mail@example.com", email)
+  newline = newline.replace("ClassName", classname)
+  newline = newline.replace("className", classname[0].lower() + classname[1:])
+  newline = newline.replace("class_name", file)
+  newline = newline.replace("NMSP_CLASSNAME_H", hdefine)
+  newline = newline.replace("NMSP", namespace.upper())
+  newline = newline.replace("nmsp", namespace.lower())
+  return newline
 
 def printComment(f, lines):
-	for line in lines:
-		if line == "":
-			f.write(indent + newline)
-		else:
-			for subline in wrapper.wrap(buildLine(line)):
-				f.write(subline + newline)
+  for line in lines:
+    if line == "":
+      f.write(indent + newline)
+    else:
+      for subline in wrapper.wrap(buildLine(line)):
+        f.write(subline + newline)
 
 def writeHeader(f):
-	f.write("/**" + newline)
-	printComment(f, filedoc)
-	f.write(" */" + newline)
-	f.write(newline)
-	f.write("/* " + newline)
-	printComment(f, copyright)
-	f.write(" */" + newline)
-	f.write(newline)
+  f.write("/**" + newline)
+  printComment(f, filedoc)
+  f.write(" */" + newline)
+  f.write(newline)
+  f.write("/* " + newline)
+  printComment(f, copyright)
+  f.write(" */" + newline)
+  f.write(newline)
 
 def writeCode(f, code):
-	for line in code:
-		f.write(buildLine(line) + newline)
+  for line in code:
+    f.write(buildLine(line) + newline)
 
 #note: need filename for buildLine
 filename = file + ".cpp"
