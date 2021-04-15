@@ -731,8 +731,7 @@ void setCmdLine(PWSTR lpCmdLine)
 	}
 	char **argv = (char **)(new char[len]);
 	char *argi = (char *)(&argv[argc]);
-	ArgC = argc;
-	ArgV = argv;
+	GAME_FINALLY([&]() -> void { delete[](char *)argv; });
 	for (int i = 0; i < argc; ++i)
 	{
 		argv[i] = argi;
@@ -743,6 +742,8 @@ void setCmdLine(PWSTR lpCmdLine)
 		GAME_THROW_LAST_ERROR_IF(!resLen);
 		argi += resLen;
 	}
+	ArgC = argc;
+	ArgV = argv;
 }
 
 void loop()
