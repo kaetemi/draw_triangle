@@ -44,3 +44,4 @@ Keep rendering while resizing.
 
 Borderless https://www.opengl.org/pipeline/article/vol003_7/
 
+To get Borderless... Simply make the window 1 pixel higher, and reduce the client size in WM_NCCALCSIZE by one pixel. :)
