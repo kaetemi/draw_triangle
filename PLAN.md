@@ -61,7 +61,7 @@ Need a System and a Window class.
 
 Add callback for what needs to be done on exceptions, part of System.
 
-Main message loop runs on System, not as part of the window. All windows run in the main thread.
+Main message loop runs on System, not as part of the window. All windows run in the main thread. Use the libsev win32 main loop. System should not depend on the event lib, just compose them.
 
 Window procedure is part of the Window, though.
 
