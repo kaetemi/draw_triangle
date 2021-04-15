@@ -349,8 +349,11 @@ LRESULT CALLBACK windowProc(_In_ HWND hwnd, _In_ UINT uMsg, _In_ WPARAM wParam, 
 				}
 			}
 			if (DisplayBorderless)
+			{
 				rect->right += 32;
-			GAME_DEBUG_FORMAT("Resolution: {}x{}\n", DisplayWidth, DisplayHeight);
+			}
+			GAME_DEBUG_FORMAT("Resolution: {}x{} ({})\n"sv, DisplayWidth, DisplayHeight, 
+				DisplayBorderless ? "Borderless"sv : (DisplayFullscreen ? "Fullscreen"sv : "Windowed"sv));
 			return res;
 		}
 		case WM_PAINT:
@@ -686,9 +689,9 @@ void applyDisplay()
 		GAME_THROW_LAST_ERROR_IF(!style);
 		style &= ~WS_OVERLAPPEDWINDOW;
 		style |= WS_POPUP;
+		DisplayBorderless = s_ReqDisplayBorderless;
 		GAME_THROW_LAST_ERROR_IF(!SetWindowLongW(MainWindow, GWL_STYLE, style));
 		GAME_THROW_LAST_ERROR_IF(!SetWindowPos(MainWindow, HWND_TOP, 0, 0, s_ReqDisplayWidth, s_ReqDisplayHeight, SWP_FRAMECHANGED));
-		DisplayBorderless = s_ReqDisplayBorderless;
 	}
 	else
 	{

@@ -41,10 +41,13 @@ bool showMessageBox(std::string_view message, std::string_view title, MessageBox
 {
 	HWND window = GetActiveWindow();
 	RECT clientRect;
-	GetClientRect(window, &clientRect);
 	RECT rect;
-	GetWindowRect(window, &rect);
-	bool fullscreen = window && (clientRect.bottom == rect.bottom);
+	if (window)
+	{
+		GetClientRect(window, &clientRect);
+		GetWindowRect(window, &rect);
+	}
+	bool fullscreen = window && (clientRect.bottom == rect.bottom) && (clientRect.right == rect.right);
 	bool minimized = fullscreen && ShowWindow(window, SW_MINIMIZE);
 	GAME_FINALLY([&]() -> void {
 		if (minimized)
