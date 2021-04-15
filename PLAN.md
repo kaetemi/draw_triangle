@@ -30,6 +30,7 @@ Game loop itself is still periodic, so it's easier to call it as-is.
 Handle window resizes.
 
 Support fullscreen.
+
 https://devblogs.microsoft.com/oldnewthing/20080104-00/?p=23923
 https://www.gamasutra.com/blogs/MasonRemaley/20210222/377715/Fullscreen_Exclusive_Is_A_Lie_sort_of.php
 https://devblogs.microsoft.com/directx/demystifying-full-screen-optimizations/
@@ -45,3 +46,7 @@ Keep rendering while resizing.
 Borderless https://www.opengl.org/pipeline/article/vol003_7/
 
 To get Borderless... Simply make the window 1 pixel higher, and reduce the client size in WM_NCCALCSIZE by one pixel. :)
+
+EXT_swap_control_tear or WGL_EXT_swap_control
+
+https://www.khronos.org/opengl/wiki/Swap_Interval

@@ -594,6 +594,13 @@ void wmCreate(HWND hwnd)
 		GAME_DEBUG_ASSERT(glShaderBinary);
 		GAME_DEBUG_ASSERT(glSpecializeShader);
 	}
+
+	PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+	if (!wglSwapIntervalEXT)
+		throw Exception("Missing function `wglSwapIntervalEXT`.");
+
+	if (!wglSwapIntervalEXT(1))
+		GAME_THROW(Exception("Failed to enable vsync"));
 }
 
 void wmDestroy()
