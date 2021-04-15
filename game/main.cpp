@@ -744,6 +744,7 @@ void setCmdLine(PWSTR lpCmdLine)
 	}
 	ArgC = argc;
 	ArgV = argv;
+	argv = null;
 }
 
 void loop()
